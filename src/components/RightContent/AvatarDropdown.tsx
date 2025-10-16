@@ -1,0 +1,78 @@
+import { sampleProfilePic } from '@/services/base/constant';
+import { LogoutOutlined, UserOutlined } from '@ant-design/icons';
+import { Avatar, Dropdown, Spin } from 'antd';
+import { ItemType } from 'antd/es/menu/interface';
+import { useIntl, useModel } from 'umi';
+import { OIDCBounder } from '../OIDCBounder';
+import styles from './index.less';
+
+const AvatarDropdown = () => {
+	const intl = useIntl();
+	const { initialState } = useModel('@@initialState');
+
+	const loginOut = () => OIDCBounder?.getActions()?.dangXuat();
+
+	if (!initialState || !initialState.currentUser)
+		return (
+			<span className={`${styles.action} ${styles.account}`}>
+				<Spin size='small' style={{ marginLeft: 8, marginRight: 8 }} />
+			</span>
+		);
+
+	const fullName = initialState.currentUser?.family_name
+		? `${initialState.currentUser.family_name} ${initialState.currentUser?.given_name ?? ''}`
+		: (initialState.currentUser?.name ?? (initialState.currentUser?.preferred_username || ''));
+	const lastNameChar = fullName.split(' ')?.at(-1)?.[0]?.toUpperCase();
+
+	const items: ItemType[] = [
+		{
+			key: 'name',
+			icon: <UserOutlined />,
+			label: fullName,
+		},
+		// {
+		// 	key: 'password',
+		// 	icon: <SwapOutlined />,
+		// 	label: 'Đổi mật khẩu',
+		// 	onClick: () => {
+		// 		const redirect = window.location.href;
+		// 		window.location.href = `${keycloakAuthEndpoint}?client_id=${AppModules[currentRole].clientId}&redirect_uri=${redirect}&response_type=code&scope=openid&kc_action=UPDATE_PASSWORD`;
+		// 	},
+		// },
+		{ type: 'divider', key: 'divider' },
+		{
+			key: 'logout',
+			icon: <LogoutOutlined />,
+			label: intl.formatMessage({ id: 'app.header.logout', defaultMessage: 'Đăng xuất' }),
+			onClick: loginOut,
+			danger: true,
+		},
+	];
+
+	if (!initialState.currentUser.realm_access?.roles?.includes('QUAN_TRI_VIEN')) {
+		// items.splice(1, 0, {
+		//   key: 'center',
+		//   icon: <UserOutlined />,
+		//   label: intl.formatMessage({ id: 'app.header.userpage', defaultMessage: 'Trang cá nhân' }),
+		//   onClick: () => history.push('/account/center'),
+		// });
+	}
+
+	return (
+		<>
+			<Dropdown menu={{ items }}>
+				<span className={`${styles.action} ${styles.account}`}>
+					<Avatar
+						className={styles.avatar}
+						src={initialState.currentUser?.picture || sampleProfilePic}
+						icon={!initialState.currentUser?.picture ? (lastNameChar ?? <UserOutlined />) : undefined}
+						alt='avatar'
+					/>
+					<span className={`${styles.name}`}>{fullName}</span>
+				</span>
+			</Dropdown>
+		</>
+	);
+};
+
+export default AvatarDropdown;
