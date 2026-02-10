@@ -23,10 +23,9 @@ const DashboardPage = () => {
 	const currentUser = initialState.currentUser;
 
 	return (
-		<PageContainer content={<PageHeaderContent currentUser={currentUser} />}>
-			<Divider />
-			<Space direction='vertical' size='large' style={{ width: '100%' }}></Space>
-		</PageContainer>
+		<>
+			Trang chủ
+		</>
 	);
 };
 
