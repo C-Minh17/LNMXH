@@ -53,6 +53,18 @@
 	// new config start
 
 	{
+		name: "Quản lý nguồn",
+		path: "/social-sources",
+		icon: "AppstoreOutlined",
+		component: './admin/quan-ly-nguon',
+	},
+	{
+		name: "quan-ly-bai-viet-theo-nguon",
+		path: "/social-sources/:data_type",
+		component: "./admin/quan-ly-nguon/quan-ly-bai-viet-theo-nguon",
+		hideInMenu: true,
+	},
+	{
 		name: "Quản lý bài viết",
 		path: "/quan-ly-bai-viet",
 		icon: "CopyOutlined",
@@ -85,10 +97,10 @@
 		]
 	},
 	{
-		name: "Quản lý nguồn",
-		path: "/social-sources",
-		icon: "AppstoreOutlined",
-		component: './admin/quan-ly-nguon',
+		name: "chi tiết bài viết",
+		path: "/quan-ly-bai-viet/:post_id",
+		component: "./admin/quan-ly-bai-viet/bai-viet-chi-tiet",
+		hideInMenu: true,
 	},
 	{
 		name: "Thống kê bên ngoài",
@@ -203,13 +215,6 @@
 				component: './admin/thong-ke/van-hoa-the-thao&doi-song-tinh-than',
 			},
 		]
-	},
-
-	{
-		name: "chi tiết bài viết",
-		path: "/quan-ly-bai-viet/:post_id",
-		component: "./admin/quan-ly-bai-viet/bai-viet-chi-tiet",
-		hideInMenu: true,
 	},
 
 

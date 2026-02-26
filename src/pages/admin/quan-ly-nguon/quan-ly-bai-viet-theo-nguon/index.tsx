@@ -1,3 +1,4 @@
+import { useParams } from "@umijs/max"
 import TableStaticData from "@/components/Table/TableStaticData"
 import { IColumn } from "@/components/Table/typing"
 import { DeleteOutlined, EditOutlined, ExportOutlined } from "@ant-design/icons"
@@ -8,7 +9,8 @@ import FormPostV2 from "./components/form"
 
 const { Title } = Typography
 
-const ManagePosts = () => {
+const filterPostsBySource = () => {
+  const { data_type } = useParams<{ data_type: string }>()
   const { refreshKey, postFilterDataTypeV2, postFilterDataTypeV2Loading, handlePostFilterDataTypeV2, handleDeletePostV2, dataType, handleGetDataTypePostV2 } = useModel("manage-post.manage-post")
   const { token } = theme.useToken()
 
@@ -74,6 +76,16 @@ const ManagePosts = () => {
       ))
     },
     {
+      title: "Loại tài liệu",
+      dataIndex: "document_type",
+      width: 150,
+      filterType: 'select',
+      filterData: [
+        { label: "external", value: "external" },
+        { label: "internal", value: "internal" },
+      ]
+    },
+    {
       title: "Loại báo",
       dataIndex: "meta_data",
       width: 200,
@@ -135,32 +147,14 @@ const ManagePosts = () => {
   ]
 
   useEffect(() => {
-    handlePostFilterDataTypeV2(valueDataType)
+    handlePostFilterDataTypeV2(data_type as string)
     handleGetDataTypePostV2()
-  }, [refreshKey, valueDataType])
+  }, [])
 
   return (
     <>
       <FormPostV2 open={openModal} setOpen={setOpenMadal} method={methodForm} initialValues={postv2Detail} />
-      <Title level={2} style={{ color: token.colorPrimary, marginBottom: 50 }}>Quản lý bài viết</Title>
-      <div>
-        <Select
-          style={{ width: 200 }}
-          placeholder="Chọn loại"
-          value={valueDataType}
-          onChange={(val) => setValueDataType(val)}
-          options={[
-            { label: "string", value: "string" },
-            { label: "news", value: "news" },
-            { label: "transportation", value: "transportation" },
-            { label: "threads", value: "threads" },
-            { label: "newspaper", value: "newspaper" },
-            { label: "facebook", value: "facebook" },
-            { label: "tiktok", value: "tiktok" }
-          ]}
-          defaultValue={"string"}
-        />
-      </div>
+      <Title level={2} style={{ color: token.colorPrimary, marginBottom: 50 }}>Quản lý bài viết theo nguồn</Title>
       <TableStaticData
         columns={columns}
         data={postFilterDataTypeV2 || []}
@@ -178,4 +172,5 @@ const ManagePosts = () => {
   )
 }
 
-export default ManagePosts
+export default filterPostsBySource
+

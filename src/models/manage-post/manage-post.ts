@@ -1,4 +1,4 @@
-import { createCrawlV2, createPostV2, deletePostV2, editPostV2, getAllPostV2, getDataTypePostV2, getPostFilterDataTypeV1, getPostFilterDocumentTypeV2, getPostV2Detail, getSourcePostV1 } from "@/services/quan-ly-bai-viet"
+import { createPostCrawlV2, createPostV2, deletePostV2, editPostV2, getAllPostV2, getDataTypePostV2, getPostFilterDataTypeV2, getPostFilterDocumentTypeV2, getPostV2Detail, getSourcePostV1, searchCrawlV2 } from "@/services/quan-ly-bai-viet"
 import { message } from "antd"
 import { useState } from "react"
 
@@ -14,15 +14,19 @@ export default () => {
   const [postv2DetailLoading, setPostV2DetailLoading] = useState<boolean>(false)
 
   // const [postv2Crawl, setPostV2Crawl] = useState<MManagePostV2.ICrawl>()
-  const [postv2CrawlLoading, setPostV2CrawlLoading] = useState<boolean>(false)
+  // const [postv2CrawlLoading, setPostV2CrawlLoading] = useState<boolean>(false)
+
+  const [postv2SearchLoading, setPostV2SearchLoading] = useState<boolean>(false)
+
+  const [createPostCrawlLoading, setCreatePostCrawlLoading] = useState<boolean>(false)
 
   const [dataType, setDataType] = useState<string[]>([])
   const [dataTypeLoading, setDataTypeLoading] = useState<boolean>(false)
 
-  //v1
-  const [postFilterDataTypeV1, setPostFilterDataTypeV1] = useState<MManagePostV2.IRecord[]>()
-  const [postFilterDataTypeV1Loading, setPostFilterDataTypeV1Loading] = useState<boolean>(false)
+  const [postFilterDataTypeV2, setPostFilterDataTypeV2] = useState<MManagePostV2.IRecord[]>()
+  const [postFilterDataTypeV2Loading, setPostFilterDataTypeV2Loading] = useState<boolean>(false)
 
+  //v1
   const [dataSource, setDataSource] = useState<string[]>([])
   const [dataSourceLoading, setDataSourceLoading] = useState<boolean>(false)
   //
@@ -100,17 +104,46 @@ export default () => {
     }
   }
 
-  const handleCrawlPostV2 = async (data: MManagePostV2.ICrawlInput) => {
-    setPostV2CrawlLoading(true);
+  // const handleCrawlPostV2 = async (data: MManagePostV2.ICrawlInput) => {
+  //   setPostV2CrawlLoading(true);
+  //   try {
+  //     const res = await createCrawlV2(data)
+  //     return res.data
+  //   } catch (error) {
+  //     console.log(error)
+  //     message.error("Lỗi tìm kiếm bài viết")
+  //     return null
+  //   } finally {
+  //     setPostV2CrawlLoading(false)
+  //   }
+  // }
+
+  const handleSearchPostV2 = async (data: MManagePostV2.ICrawlInput) => {
+    setPostV2SearchLoading(true);
     try {
-      const res = await createCrawlV2(data)
+      const res = await searchCrawlV2(data)
       return res.data
     } catch (error) {
       console.log(error)
       message.error("Lỗi tìm kiếm bài viết")
       return null
     } finally {
-      setPostV2CrawlLoading(false)
+      setPostV2SearchLoading(false)
+    }
+  }
+
+  const handleCreateFromSearchPostV2 = async (data: MManagePostV2.ICreateFromSearch) => {
+    setCreatePostCrawlLoading(true);
+    try {
+      const res = await createPostCrawlV2(data)
+      if (res) triggerReload()
+      return res
+    } catch (error) {
+      console.log(error)
+      message.error("Lỗi tạo bài viết")
+      return null
+    } finally {
+      setCreatePostCrawlLoading(false)
     }
   }
 
@@ -144,19 +177,20 @@ export default () => {
     }
   }
 
-  //v1
-  const handlePostFilterDataTypeV1 = async (data_type: string, page_size?: number, sort_by?: string, order?: string, page?: number) => {
-    setPostFilterDataTypeV1Loading(true);
+  const handlePostFilterDataTypeV2 = async (data_type: string, page_size?: number, sort_by?: string, order?: string, page?: number) => {
+    setPostFilterDataTypeV2Loading(true);
     try {
-      const res = await getPostFilterDataTypeV1(data_type, page_size, sort_by, order, page)
-      setPostFilterDataTypeV1(res.data)
+      const res = await getPostFilterDataTypeV2(data_type, page_size, sort_by, order, page)
+      setPostFilterDataTypeV2(res.data)
     } catch (error) {
       console.log(error)
       message.error("Lỗi lấy bài viết")
     } finally {
-      setPostFilterDataTypeV1Loading(false)
+      setPostFilterDataTypeV2Loading(false)
     }
   }
+
+  //v1
 
   const handleGetDataSource = async () => {
     setDataSourceLoading(true);
@@ -181,10 +215,12 @@ export default () => {
     dataTypeLoading,
     postFilterDocumentType,
     postFilterDocumentTypeLoading,
-    postFilterDataTypeV1,
-    postFilterDataTypeV1Loading,
+    postFilterDataTypeV2,
+    postFilterDataTypeV2Loading,
     // postv2Crawl,
-    postv2CrawlLoading,
+    // postv2CrawlLoading,
+    createPostCrawlLoading,
+    postv2SearchLoading,
     dataSource,
     dataSourceLoading,
 
@@ -199,8 +235,10 @@ export default () => {
     handleEditPostV2,
     handleGetDataTypePostV2,
     handlePostFilterDocumentType,
-    handlePostFilterDataTypeV1,
-    handleCrawlPostV2,
+    handlePostFilterDataTypeV2,
+    // handleCrawlPostV2,
+    handleSearchPostV2,
+    handleCreateFromSearchPostV2,
     handleGetDataSource,
   }
 }

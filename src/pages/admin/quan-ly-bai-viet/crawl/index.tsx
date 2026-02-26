@@ -1,21 +1,22 @@
 import TableStaticData from "@/components/Table/TableStaticData"
 import { IColumn } from "@/components/Table/typing"
-import { ExportOutlined } from "@ant-design/icons"
+import { CodeOutlined, ExportOutlined, FileTextOutlined, LinkOutlined } from "@ant-design/icons"
 import { useModel } from "@umijs/max"
-import { Button, Col, Divider, Form, Input, Modal, Row, Space, Tag, theme, Tooltip, Typography } from "antd"
+import { Badge, Button, Col, Divider, Form, Input, Modal, Row, Space, Tag, theme, Tooltip, Typography } from "antd"
 import { useEffect, useState } from "react"
-import { Link } from "react-router"
+import FormCreatePostCrawl from "./components/form"
 
 const { Title, Text } = Typography
 
 const ManagePosts = () => {
-  const { postv2CrawlLoading, handleCrawlPostV2 } = useModel("manage-post.manage-post")
+  const { postv2SearchLoading, handleSearchPostV2 } = useModel("manage-post.manage-post")
   const { token } = theme.useToken()
-  const [postv2Crawl, setPostV2Crawl] = useState<MManagePostV2.IResults[]>()
+  const [postv2Search, setPostV2Search] = useState<MManagePostV2.ISearch[]>()
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [postv2CrawlDetail, setPostV2CrawlDetail] = useState<MManagePostV2.IResults>()
+  const [postv2CrawlDetail, setPostV2CrawlDetail] = useState<MManagePostV2.ISearch>()
 
+  const [isCreateMode, setIsCreateMode] = useState(false);
 
   const truncateText = (text: string, maxLength: number) => {
     if (!text) return "";
@@ -27,21 +28,20 @@ const ManagePosts = () => {
     const dataPay = {
       ...e,
       max_results: 20,
-      skip_existing: true,
       search_depth: "advanced",
     }
-    const res = await handleCrawlPostV2(dataPay)
-    setPostV2Crawl(res?.data?.tavily_results)
+    const res = await handleSearchPostV2(dataPay)
+    setPostV2Search(res?.data?.results as MManagePostV2.ISearch[])
   }
 
-  const columns: IColumn<MManagePostV2.IResults>[] = [
+  const columns: IColumn<MManagePostV2.ISearch>[] = [
     {
       title: "Tiêu đề",
       dataIndex: "title",
       width: 250,
       filterType: 'string',
-      render: (value) => (
-        truncateText(value, 50)
+      render: (value, record) => (
+        truncateText(record?.title, 50)
       )
     },
     {
@@ -49,21 +49,59 @@ const ManagePosts = () => {
       dataIndex: "content",
       width: 300,
       filterType: 'string',
-      render: (value) => (
-        truncateText(value, 50)
+      render: (value, record) => (
+        truncateText(record?.content, 50)
       )
     },
     {
-      title: "Điểm",
-      dataIndex: "score",
-      width: 150,
+      title: "Nguồn bài viết",
+      dataIndex: "url",
+      width: 300,
+      filterType: 'string',
+      render: (value, record) => (
+        <Typography.Link href={value} target="_blank" rel="noreferrer">
+          {truncateText(record?.url, 50)}
+        </Typography.Link>
+      )
     },
+    {
+      title: 'Score',
+      dataIndex: 'tavily_score',
+      key: 'tavily_score',
+      width: 100,
+      render: (score) => (
+        <Text type={score > 0.8 ? 'success' : 'warning'}>
+          {(score * 100).toFixed(2)}%
+        </Text>
+      ),
+    },
+    {
+      title: 'Status',
+      dataIndex: 'already_exists',
+      key: 'already_exists',
+      width: 120,
+      align: "center",
+      render: (exists) => (
+        <Tag color={!exists ? 'success' : 'default'}>{exists ? 'Đã có' : 'Mới'}</Tag>
+      ),
+    },
+    // {
+    //   title: 'Meta Data',
+    //   dataIndex: 'extracted_data',
+    //   key: 'extracted_data',
+    //   width: 200,
+    //   render: (value, record) => (
+    //     <pre style={{ margin: 0 }}>
+    //       {JSON.stringify(record?.extracted_data?.meta_data, null, 2)}
+    //     </pre>
+    //   ),
+    // },
     {
       title: 'Thao tác',
       align: 'center',
       width: 120,
       fixed: 'right',
-      render: (record: MManagePostV2.IResults) => {
+      render: (val, record) => {
         return (
           <>
             <Tooltip title='Xem chi tiết'>
@@ -78,26 +116,91 @@ const ManagePosts = () => {
   return (
     <>
       <Modal
-        title={<Text>{postv2CrawlDetail?.title}</Text>}
-        closable={{ 'aria-label': 'Custom Close Button' }}
+        title={
+          <Space>
+            <FileTextOutlined />
+            <Text strong style={{ fontSize: 16 }}>Chi tiết bài viết</Text>
+          </Space>
+        }
         open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
-        footer
+        onCancel={() => { setIsModalOpen(false), setIsCreateMode(false) }}
+        width={700}
+        footer={!isCreateMode ? [
+          <>
+            <Button type="primary" style={{ display: postv2CrawlDetail?.already_exists ? "none" : "" }} key="close" onClick={() => { setIsCreateMode(true) }}>
+              Thêm mới
+            </Button>
+            <Button key="close" onClick={() => { setIsModalOpen(false), setIsCreateMode(false) }}>
+              Đóng
+            </Button>
+          </>
+        ] : false}
+        centered
       >
-        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-          <Text>
-            Nguồn:&nbsp;
-            <a href={postv2CrawlDetail?.url} target="_blank" rel="noreferrer" style={{ color: '#1890ff' }}>
-              {postv2CrawlDetail?.url}
-            </a>
-          </Text>
-          <Tag color="blue">Score: {postv2CrawlDetail?.score.toFixed(2)}</Tag>
-          <Divider />
-          <div>Nội dung:</div>
-          <div style={{ maxHeight: 400, overflowY: 'auto' }}>
-            {postv2CrawlDetail?.content}
-          </div>
-        </Space>
+        {!isCreateMode ?
+          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+            <div>
+              <Title level={4} style={{ marginBottom: 8 }}>
+                {postv2CrawlDetail?.title}
+              </Title>
+
+              <Space wrap>
+                <a href={postv2CrawlDetail?.url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <LinkOutlined /> Xem nguồn gốc
+                </a>
+                <Divider type="vertical" />
+                <Tag color={postv2CrawlDetail?.tavily_score ? postv2CrawlDetail?.tavily_score > 0.8 ? "success" : "warning" : ""}>
+                  Score: {postv2CrawlDetail?.tavily_score?.toFixed(4)}
+                </Tag>
+                {postv2CrawlDetail?.already_exists && <Tag color="magenta">Đã tồn tại</Tag>}
+              </Space>
+            </div>
+
+            <Divider style={{ margin: '12px 0' }} />
+
+            <div>
+              <Text strong>Nội dung trích xuất:</Text>
+              <div
+                style={{
+                  marginTop: 8,
+                  padding: 12,
+                  background: '#f9f9f9',
+                  borderRadius: 6,
+                  border: '1px solid #f0f0f0',
+                  maxHeight: 300,
+                  overflowY: 'auto',
+                  lineHeight: '1.6'
+                }}
+              >
+                {postv2CrawlDetail?.content}
+              </div>
+            </div>
+
+            <div>
+              <Space style={{ marginBottom: 8 }}>
+                <CodeOutlined />
+                <Text strong>Meta Data (JSON):</Text>
+              </Space>
+
+              <div style={{
+                backgroundColor: '#282c34',
+                color: '#abb2bf',
+                padding: '12px',
+                borderRadius: '6px',
+                maxHeight: '250px',
+                overflow: 'auto',
+                fontSize: '12px',
+                fontFamily: 'Menlo, Monaco, "Courier New", monospace'
+              }}>
+                <pre style={{ margin: 0 }}>
+                  {JSON.stringify(postv2CrawlDetail?.extracted_data?.meta_data, null, 2)}
+                </pre>
+              </div>
+            </div>
+
+          </Space> :
+          <FormCreatePostCrawl data={postv2CrawlDetail as MManagePostV2.ISearch} closeModal={() => { setIsModalOpen(false), setIsCreateMode(false) }} />
+        }
       </Modal>
       <Title level={2} style={{ color: token.colorPrimary, marginBottom: 50 }}>Quản lý bài viết</Title>
       <Form onFinish={onSearch}>
@@ -124,9 +227,9 @@ const ManagePosts = () => {
       </Form>
       <TableStaticData
         columns={columns}
-        data={postv2Crawl || []}
+        data={postv2Search || []}
         addStt={true}
-        loading={postv2CrawlLoading}
+        loading={postv2SearchLoading}
       />
     </>
   )

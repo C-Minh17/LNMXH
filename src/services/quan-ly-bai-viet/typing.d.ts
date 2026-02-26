@@ -28,14 +28,41 @@ declare module MManagePostV2 {
     search_depth: advanced,
     start_date: string,
     end_date: string,
-    skip_existing: boolean,
   }
 
-  interface IResults {
+  // interface IResults {
+  //   url: string,
+  //   title: string,
+  //   content: string,
+  //   raw_content: string,
+  //   score: number
+  // }
+
+  interface ISearch {
     url: string,
     title: string,
     content: string,
-    raw_content: string,
-    score: number
+    extracted_data: MManagePostV2.IExtractedData,
+    tavily_score: number,
+    already_exists: boolean,
+    error: string
+  }
+
+  interface IExtractedData {
+    url: string,
+    title: string,
+    content: string,
+    data_type: string,
+    meta_data: any
+  }
+
+  interface ICreateFromSearch {
+    url: string,
+    title: string,
+    content: string,
+    document_type: "external" | "internal",
+    newspaper_type: string,
+    source: string,
+    meta_data: any,
   }
 }
