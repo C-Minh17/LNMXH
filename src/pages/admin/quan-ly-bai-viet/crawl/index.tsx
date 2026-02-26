@@ -1,6 +1,6 @@
 import TableStaticData from "@/components/Table/TableStaticData"
 import { IColumn } from "@/components/Table/typing"
-import { CodeOutlined, ExportOutlined, FileTextOutlined, LinkOutlined } from "@ant-design/icons"
+import { CodeOutlined, ExportOutlined, FileTextOutlined, LinkOutlined, SearchOutlined } from "@ant-design/icons"
 import { useModel } from "@umijs/max"
 import { Badge, Button, Col, Divider, Form, Input, Modal, Row, Space, Tag, theme, Tooltip, Typography } from "antd"
 import { useEffect, useState } from "react"
@@ -202,7 +202,7 @@ const ManagePosts = () => {
           <FormCreatePostCrawl data={postv2CrawlDetail as MManagePostV2.ISearch} closeModal={() => { setIsModalOpen(false), setIsCreateMode(false) }} />
         }
       </Modal>
-      <Title level={2} style={{ color: token.colorPrimary, marginBottom: 50 }}>Quản lý bài viết</Title>
+      <Title level={2} style={{ color: token.colorPrimary, marginBottom: 50, marginLeft: 15 }}>Tìm kiếm bài viết</Title>
       <Form onFinish={onSearch}>
         <Row gutter={[10, 2]}>
           <Col sm={24} md={12}>
@@ -221,7 +221,7 @@ const ManagePosts = () => {
             </Form.Item>
           </Col>
           <Col sm={12} md={24} style={{ textAlign: "end" }}>
-            <Button htmlType="submit" type="primary" style={{ marginRight: 20 }}>Tìm kiếm</Button>
+            <Button icon={<SearchOutlined />} htmlType="submit" type="primary" style={{ marginRight: 20 }}>Tìm kiếm</Button>
           </Col>
         </Row>
       </Form>

@@ -1,4 +1,4 @@
-import { EditOutlined, PlusCircleOutlined } from "@ant-design/icons";
+import { DownloadOutlined, EditOutlined, PlusCircleOutlined } from "@ant-design/icons";
 import { useModel } from "@umijs/max";
 import { Button, Card, Col, Flex, Form, Input, message, Modal, Row, Select, theme, Typography } from "antd"
 import { useEffect } from "react";
@@ -118,7 +118,7 @@ const FormCreatePostCrawl = (props: IFormCreatePostCrawl) => {
             </Col>
             <Col sm={24}>
               <Flex justify="center">
-                <Button htmlType="submit" loading={createPostCrawlLoading} type="primary" size="large">lưu bài viết</Button>
+                <Button icon={<DownloadOutlined />} htmlType="submit" loading={createPostCrawlLoading} type="primary" size="large">lưu bài viết</Button>
               </Flex>
             </Col>
           </Row>

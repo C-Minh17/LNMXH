@@ -2,7 +2,7 @@ import TableStaticData from "@/components/Table/TableStaticData";
 import { IColumn } from "@/components/Table/typing";
 import { FilterOutlined, SyncOutlined } from "@ant-design/icons";
 import { useLocation, useModel } from "@umijs/max";
-import { Button, Col, Form, Input, InputNumber, Modal, Row, theme, Tooltip, Typography } from "antd"
+import { Button, Col, Form, Input, InputNumber, Modal, Row, Tag, theme, Tooltip, Typography } from "antd"
 import { useEffect, useState } from "react";
 
 const { Title } = Typography;
@@ -105,14 +105,18 @@ const StatisticSipas = () => {
       dataIndex: "rank_national",
       width: 120,
       align: 'center',
-      render: (val: number) => (val !== null ? `#${val}` : "N/A"),
+      render: (val: number) => (
+        <Tag color="blue">{val !== null ? `#${val}` : "N/A"}</Tag>
+      ),
     },
     {
       title: "Xếp hạng KV",
       dataIndex: "rank_regional",
       width: 120,
       align: 'center',
-      render: (val: number) => (val !== null ? `#${val}` : "N/A"),
+      render: (val: number) => (
+        <Tag color="blue">{val !== null ? `#${val}` : "N/A"}</Tag>
+      ),
     },
     {
       title: "Thay đổi YoY",

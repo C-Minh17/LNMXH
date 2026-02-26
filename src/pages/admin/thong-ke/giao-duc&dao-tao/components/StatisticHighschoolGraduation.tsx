@@ -2,7 +2,7 @@ import TableStaticData from "@/components/Table/TableStaticData";
 import { IColumn } from "@/components/Table/typing";
 import { FilterOutlined, SyncOutlined } from "@ant-design/icons";
 import { useLocation, useModel } from "@umijs/max";
-import { Button, Col, Form, Input, InputNumber, Modal, Row, Select, theme, Tooltip, Typography } from "antd"
+import { Button, Col, Form, Input, InputNumber, Modal, Row, Select, Tag, theme, Tooltip, Typography } from "antd"
 import { useEffect, useState } from "react";
 
 const { Title } = Typography;
@@ -156,14 +156,18 @@ const StatisticHighschoolGraduationDetail = () => {
       dataIndex: "rank_national",
       width: 140,
       align: 'center',
-      render: (val: number) => (val !== null ? `#${val}` : "N/A"),
+      render: (val: number) => (
+        <Tag color="blue">{val !== null ? `#${val}` : "N/A"}</Tag>
+      ),
     },
     {
       title: "Xếp hạng Khu vực",
       dataIndex: "rank_regional",
       width: 140,
       align: 'center',
-      render: (val: number) => (val !== null ? `#${val}` : "N/A"),
+      render: (val: number) => (
+        <Tag color="blue">{val !== null ? `#${val}` : "N/A"}</Tag>
+      ),
     },
     {
       title: "Thay đổi YoY",
