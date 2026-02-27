@@ -32,7 +32,7 @@ const StatisticDigitalTransformation = () => {
 
   const [openFilter, setOpenFilter] = useState(false);
   const [form] = Form.useForm();
-  const [params, setParams] = useState<MStatistic.QueryParamsFdi>({
+  const [params, setParams] = useState<MStatistic.QueryParams2>({
     year: undefined,
     quarter: undefined,
     province: undefined,

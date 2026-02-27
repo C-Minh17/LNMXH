@@ -11,6 +11,13 @@ declare module MManagePostV2 {
     meta_data: any
   }
 
+  interface IParamPost {
+    sort_by: string | null | undefined,
+    order: string | null | undefined,
+    page_size: number | null | undefined,
+    page: number | null | undefined,
+  }
+
   interface ICrawl {
     query: string,
     total_results: number,

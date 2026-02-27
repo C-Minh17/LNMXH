@@ -2,7 +2,7 @@ import TableStaticData from "@/components/Table/TableStaticData"
 import { IColumn } from "@/components/Table/typing"
 import { CodeOutlined, ExportOutlined, FileTextOutlined, LinkOutlined, SearchOutlined } from "@ant-design/icons"
 import { useModel } from "@umijs/max"
-import { Badge, Button, Col, Divider, Form, Input, Modal, Row, Space, Tag, theme, Tooltip, Typography } from "antd"
+import { Badge, Button, Col, Divider, Form, Input, InputNumber, Modal, Row, Space, Tag, theme, Tooltip, Typography } from "antd"
 import { useEffect, useState } from "react"
 import FormCreatePostCrawl from "./components/form"
 
@@ -27,7 +27,6 @@ const ManagePosts = () => {
   const onSearch = async (e: MManagePostV2.ICrawlInput) => {
     const dataPay = {
       ...e,
-      max_results: 20,
       search_depth: "advanced",
     }
     const res = await handleSearchPostV2(dataPay)
@@ -76,7 +75,7 @@ const ManagePosts = () => {
       ),
     },
     {
-      title: 'Status',
+      title: 'Trạng thái',
       dataIndex: 'already_exists',
       key: 'already_exists',
       width: 120,
@@ -210,14 +209,19 @@ const ManagePosts = () => {
               <Input type="text" placeholder="Nhập thông tin tìm kiếm" />
             </Form.Item>
           </Col>
-          <Col sm={6} md={6}>
+          <Col sm={6} md={5}>
             <Form.Item name="start_date" label="Từ: ">
               <Input type="date" />
             </Form.Item>
           </Col>
-          <Col sm={6} md={6}>
+          <Col sm={6} md={5}>
             <Form.Item name="end_date" label="Đến: ">
               <Input type="date" />
+            </Form.Item>
+          </Col>
+          <Col sm={4} lg={2}>
+            <Form.Item name="max_results" label="Số: ">
+              <InputNumber style={{ width: "100%" }} />
             </Form.Item>
           </Col>
           <Col sm={12} md={24} style={{ textAlign: "end" }}>

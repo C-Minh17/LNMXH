@@ -37,10 +37,10 @@ export default () => {
 
   const triggerReload = () => setRefreshKey(prev => prev + 1)
 
-  const handleGetAllPostV2 = async (page_size?: number, sort_by?: string, order?: string, page?: number) => {
+  const handleGetAllPostV2 = async (params?: MManagePostV2.IParamPost) => {
     setAllPostV2Loading(true);
     try {
-      const res = await getAllPostV2(page_size, sort_by, order, page)
+      const res = await getAllPostV2(params)
       setAllPostV2(res.data)
     } catch (error) {
       console.log(error)
@@ -50,10 +50,10 @@ export default () => {
     }
   }
 
-  const handlePostFilterDocumentType = async (document_type: string, page_size?: number, sort_by?: string, order?: string, page?: number) => {
+  const handlePostFilterDocumentType = async (document_type: string, params?: MManagePostV2.IParamPost) => {
     setPostFilterDocumentTypeLoading(true);
     try {
-      const res = await getPostFilterDocumentTypeV2(document_type, page_size, sort_by, order, page)
+      const res = await getPostFilterDocumentTypeV2(document_type, params)
       setPostFilterDocumentType(res.data)
     } catch (error) {
       console.log(error)
@@ -177,10 +177,10 @@ export default () => {
     }
   }
 
-  const handlePostFilterDataTypeV2 = async (data_type: string, page_size?: number, sort_by?: string, order?: string, page?: number) => {
+  const handlePostFilterDataTypeV2 = async (data_type: string, params?: MManagePostV2.IParamPost) => {
     setPostFilterDataTypeV2Loading(true);
     try {
-      const res = await getPostFilterDataTypeV2(data_type, page_size, sort_by, order, page)
+      const res = await getPostFilterDataTypeV2(data_type, params)
       setPostFilterDataTypeV2(res.data)
     } catch (error) {
       console.log(error)

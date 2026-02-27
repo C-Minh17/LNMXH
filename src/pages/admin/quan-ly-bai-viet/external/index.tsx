@@ -1,10 +1,11 @@
 import TableStaticData from "@/components/Table/TableStaticData"
 import { IColumn } from "@/components/Table/typing"
-import { DeleteOutlined, EditOutlined, ExportOutlined } from "@ant-design/icons"
+import { DeleteOutlined, EditOutlined, ExportOutlined, FilterOutlined } from "@ant-design/icons"
 import { history, useModel } from "@umijs/max"
-import { Button, message, Popconfirm, theme, Tooltip, Typography } from "antd"
+import { Button, message, Modal, Popconfirm, theme, Tooltip, Typography } from "antd"
 import { useEffect, useState } from "react"
 import FormPostV2 from "./components/form"
+import FormFilterParams from "./components/formFilter"
 
 const { Title } = Typography
 
@@ -12,9 +13,11 @@ const ManagePosts = () => {
   const { refreshKey, postFilterDocumentType, postFilterDocumentTypeLoading, handlePostFilterDocumentType, handleDeletePostV2, dataType, handleGetDataTypePostV2 } = useModel("manage-post.manage-post")
   const { token } = theme.useToken()
 
-  const [openModal, setOpenMadal] = useState<boolean>(false);
+  const [openModal, setOpenModal] = useState<boolean>(false);
   const [methodForm, setMethodForm] = useState<"put" | "post">("post");
   const [postv2Detail, setPostv2Detail] = useState<MManagePostV2.IRecord>();
+  const [params, setParams] = useState<MManagePostV2.IParamPost>();
+  const [openFilter, setOpenFilter] = useState(false);
 
   const truncateText = (text: string, maxLength: number) => {
     if (!text) return "";
@@ -112,7 +115,7 @@ const ManagePosts = () => {
               <Button onClick={() => {
                 setMethodForm("put")
                 setPostv2Detail(record)
-                setOpenMadal(true)
+                setOpenModal(true)
               }} type='link' icon={<EditOutlined />} />
             </Tooltip>
             <Tooltip title='Xóa'>
@@ -138,13 +141,21 @@ const ManagePosts = () => {
   ]
 
   useEffect(() => {
-    handlePostFilterDocumentType("external")
+    handlePostFilterDocumentType("external", params)
     handleGetDataTypePostV2()
-  }, [refreshKey])
+  }, [refreshKey, params])
 
   return (
     <>
-      <FormPostV2 open={openModal} setOpen={setOpenMadal} method={methodForm} initialValues={postv2Detail} />
+      <Modal
+        title="Bộ lọc dữ liệu"
+        open={openFilter}
+        onCancel={() => setOpenFilter(false)}
+        footer={false}
+      >
+        <FormFilterParams setParams={setParams} setOpenFilter={setOpenFilter} params={params} />
+      </Modal>
+      <FormPostV2 open={openModal} setOpen={setOpenModal} method={methodForm} initialValues={postv2Detail} />
       <Title level={2} style={{ color: token.colorPrimary, marginBottom: 50 }}>Quản lý bài viết</Title>
       <TableStaticData
         columns={columns}
@@ -152,6 +163,19 @@ const ManagePosts = () => {
         addStt={true}
         hasTotal
         loading={postFilterDocumentTypeLoading}
+        otherButtons={[
+          <>
+            <Tooltip title="Bộ lọc">
+              <Button
+                onClick={async () => {
+                  setOpenFilter(true)
+                }}
+                icon={<FilterOutlined />}
+              >
+              </Button>
+            </Tooltip>
+          </>
+        ]}
       // hasCreate
       // setShowEdit={() => {
       //   setMethodForm("post")
