@@ -183,7 +183,7 @@ const CrawlSourceManager: React.FC = () => {
   return (
     <>
       <Title level={2} style={{ color: token.colorPrimary, marginBottom: 24 }}>
-        Quản lý nguồn thu thập tin bài
+        Danh sách nguồn thu thập tin bài
       </Title>
 
       <TableStaticData

@@ -58,7 +58,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState }) => {
 				// const isUncheckPath = unCheckPermissionPaths.some((path) => window.location.pathname.includes(path));
 
 				if (location.pathname === '/') {
-					history.replace('/quan-li-du-an/du-an');
+					history.replace('/quan-ly-bai-viet');
 				}
 				// else if (
 				// 	!isUncheckPath &&

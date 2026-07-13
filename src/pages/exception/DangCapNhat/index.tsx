@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 const DangCapNhatPage = () => {
 	// Nếu Đang cập nhật thì bỏ cái này đi
 	useEffect(() => {
-		history.replace('/dashboard');
+		history.replace('/quan-ly-bai-viet');
 	}, []);
 
 	return (

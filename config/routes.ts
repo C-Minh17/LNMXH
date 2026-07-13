@@ -22,12 +22,12 @@ export default [
 	///////////////////////////////////
 
 	// DEFAULT MENU
-	{
-		name: 'dashboard',
-		path: '/dashboard',
-		component: './dashboard',
-		icon: 'HomeOutlined',
-	},
+	// {
+	// 	name: 'dashboard',
+	// 	path: '/dashboard',
+	// 	component: './dashboard',
+	// 	icon: 'HomeOutlined',
+	// },
 	{
 		path: '/notification',
 		routes: [
@@ -51,13 +51,6 @@ export default [
 		hideInMenu: true,
 	},
 	// new config start
-
-	{
-		name: "Quản lý nguồn",
-		path: "/social-sources",
-		icon: "AppstoreOutlined",
-		component: './quan-ly-nguon',
-	},
 	{
 		name: "quan-ly-bai-viet-theo-nguon",
 		path: "/social-sources/:data_type",
@@ -69,6 +62,10 @@ export default [
 		path: "/quan-ly-bai-viet",
 		icon: "CopyOutlined",
 		routes: [
+			{
+				path: '/quan-ly-bai-viet',
+				redirect: '/quan-ly-bai-viet/internal',
+			},
 			{
 				name: 'Nội bộ',
 				path: '/quan-ly-bai-viet/internal',
@@ -97,7 +94,13 @@ export default [
 		]
 	},
 	{
-		name: "Quản lý crwal",
+		name: "Quản lý nguồn",
+		path: "/social-sources",
+		icon: "AppstoreOutlined",
+		component: './quan-ly-nguon',
+	},
+	{
+		name: "Quản lý crawl",
 		path: "/quan-ly-crawl",
 		icon: "CopyOutlined",
 		routes: [
@@ -242,7 +245,7 @@ export default [
 
 	{
 		path: '/',
-		redirect: '/dashboard',
+		redirect: '/quan-ly-bai-viet',
 	},
 	{
 		path: '/403',
