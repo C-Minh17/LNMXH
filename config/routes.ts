@@ -89,10 +89,32 @@ export default [
 			// 	path: '/quan-ly-bai-viet/quan-ly-nguon',
 			// 	component: './quan-ly-bai-viet/quan-ly-nguon',
 			// },
+			// {
+			// 	name: 'Tìm kiếm bài viết',
+			// 	path: '/quan-ly-bai-viet/crawl',
+			// 	component: './quan-ly-bai-viet/crawl',
+			// },
+		]
+	},
+	{
+		name: "Quản lý crwal",
+		path: "/quan-ly-crawl",
+		icon: "CopyOutlined",
+		routes: [
 			{
-				name: 'Tìm kiếm bài viết',
-				path: '/quan-ly-bai-viet/crawl',
-				component: './quan-ly-bai-viet/crawl',
+				name: 'Nguồn crawl tin bài',
+				path: '/quan-ly-crawl/crawl-source',
+				component: './Quan-ly-crawl/crawl-source',
+			},
+			{
+				name: 'Crawl từ facebook',
+				path: '/quan-ly-crawl/crawl-facebook',
+				component: './Quan-ly-crawl/crawl-facebook',
+			},
+			{
+				name: 'Crawl từ tiktok',
+				path: '/quan-ly-crawl/crawl-tiktok',
+				component: './Quan-ly-crawl/crawl-tiktok',
 			},
 		]
 	},

@@ -19,6 +19,7 @@ declare module MCrawlSource {
     config: Record<string, any>;
     description: string;
     frequency_minutes: number;
+    limit_per_input?: number;
     is_active: boolean;
     name: string;
     platform: string;
@@ -37,7 +38,7 @@ declare module MCrawlSource {
     label: string;
     type: string;
     required: boolean;
-    description: string;
+    description?: string;
   }
 
   interface ISourceType {
@@ -47,4 +48,4 @@ declare module MCrawlSource {
     dataset_id: string;
     fields: ISourceField[];
   }
-}
+}

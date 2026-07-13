@@ -14,7 +14,9 @@ const ipCore = ipRoot + 'core'; // ip dev
 
 const ipPost_v2 = ipRoot + "/v1/posts-v2"
 const ipPost_v1 = ipRoot + "/v1/posts"
-const ipCrawlSource = ipRoot + "/api/v3/crawl-sources"
+const ipCrawlSource = ipRoot + "/v3/crawl-sources"
+const ipFacebookBrightdata = ipRoot + "/v3/facebook-brightdata"
+const ipTiktokBrightdata = ipRoot + "/v3/tiktok-brightdata"
 
 const currentRole = EModuleKey.TCNS;
 const replaceRole: EModuleKey | undefined = undefined; //EModuleKey.CONG_CAN_BO; // Thay đổi theo từng phân hệ
@@ -50,4 +52,6 @@ export {
 	resourceServerClientId,
 	sentryDSN,
 	ipCrawlSource,
+	ipFacebookBrightdata,
+	ipTiktokBrightdata,
 };
