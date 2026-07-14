@@ -24,3 +24,11 @@ export async function crawlFacebookReels(data: MCrawlFacebook.IReelRequest): Pro
 export async function getFacebookSnapshot(snapshot_id: string, params?: MCrawlFacebook.ISnapshotParams): Promise<MCrawlFacebook.IBaseResponse> {
   return await axios.get(`${ipFacebookBrightdata}/snapshot/${snapshot_id}`, { params }).then((res) => res.data);
 }
+
+export async function getFacebookRecords(params?: MCrawlFacebook.IRecordParams): Promise<MCrawlFacebook.IBaseResponse<MCrawlFacebook.IRecord[]>> {
+  return await axios.get(`${ipFacebookBrightdata}/records`, { params }).then((res) => res.data);
+}
+
+export async function getFacebookRecordDetail(record_id: number): Promise<MCrawlFacebook.IBaseResponse<MCrawlFacebook.IRecord>> {
+  return await axios.get(`${ipFacebookBrightdata}/records/${record_id}`).then((res) => res.data);
+}

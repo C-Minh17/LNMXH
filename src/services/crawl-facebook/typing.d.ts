@@ -52,6 +52,29 @@ declare module MCrawlFacebook {
     scraper_type?: string;
   }
 
+  interface IRecordParams {
+    scraper_type?: string;
+    snapshot_id?: string;
+    only_errors?: boolean;
+    sort_by?: string;
+    order?: 'asc' | 'desc';
+    page_size?: number;
+    page?: number;
+  }
+
+  interface IRecord {
+    id: number;
+    created_at: number;
+    updated_at: number;
+    scraper_type: string;
+    dataset_id: string;
+    snapshot_id: string;
+    record_id: string;
+    record_url: string;
+    error?: string;
+    raw_data?: any;
+  }
+
   interface IBaseResponse<T = any> {
     http_code: number;
     success: boolean;

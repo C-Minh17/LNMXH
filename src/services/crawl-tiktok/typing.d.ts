@@ -71,6 +71,32 @@ declare module MCrawlTiktok {
     scraper_type?: string;
   }
 
+  interface IRecordParams {
+    scraper_type?: string;
+    snapshot_id?: string;
+    only_errors?: boolean;
+    has_script?: boolean;
+    sort_by?: string;
+    order?: 'asc' | 'desc';
+    page_size?: number;
+    page?: number;
+  }
+
+  interface IRecord {
+    id: number;
+    created_at: number;
+    updated_at: number;
+    scraper_type: string;
+    dataset_id: string;
+    snapshot_id: string;
+    record_id: string;
+    record_url: string;
+    error?: string;
+    raw_data?: any;
+    has_script?: boolean;
+    script?: string;
+  }
+
   // --- COMMON RESPONSES ---
 
   interface IBaseResponse<T = any> {

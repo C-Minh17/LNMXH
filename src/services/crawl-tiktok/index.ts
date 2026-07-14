@@ -70,3 +70,17 @@ export async function getTiktokSnapshot(
 ): Promise<MCrawlTiktok.IBaseResponse<MCrawlTiktok.ISnapshotData>> {
   return await axios.get(`${ipTiktokBrightdata}/snapshot/${snapshot_id}`, { params }).then((res) => res.data);
 }
+
+// 4. Lấy danh sách records đã crawl
+export async function getTiktokRecords(
+  params?: MCrawlTiktok.IRecordParams,
+): Promise<MCrawlTiktok.IBaseResponse<MCrawlTiktok.IRecord[]>> {
+  return await axios.get(`${ipTiktokBrightdata}/records`, { params }).then((res) => res.data);
+}
+
+// 5. Lấy chi tiết 1 record đã crawl
+export async function getTiktokRecordDetail(
+  record_id: number,
+): Promise<MCrawlTiktok.IBaseResponse<MCrawlTiktok.IRecord>> {
+  return await axios.get(`${ipTiktokBrightdata}/records/${record_id}`).then((res) => res.data);
+}

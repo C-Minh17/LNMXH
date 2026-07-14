@@ -1,20 +1,11 @@
 import { useModel } from "@umijs/max";
 import { Col, Row, theme, Typography } from "antd";
 import dayjs from "dayjs";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import CrawlForm from "./components/CrawlForm";
-import HistoryTable from "./components/HistoryTable";
-import DetailModal from "./components/DetailModal";
+import RecordsTable from "./components/RecordsTable";
 
 const { Title } = Typography;
-
-interface ISnapshotHistoryItem {
-  id: string;
-  type: string;
-  time: number;
-  urls_count: number;
-  local_records?: any[];
-}
 
 const CrawlFacebookPanel: React.FC = () => {
   const { token } = theme.useToken();
@@ -25,44 +16,15 @@ const CrawlFacebookPanel: React.FC = () => {
     crawlProfilesLoading,
     crawlPagesProfilesLoading,
     crawlReelsLoading,
-    snapshotLoading,
     handleCrawlPagePosts,
     handleCrawlGroupPosts,
     handleCrawlProfiles,
     handleCrawlPagesProfiles,
     handleCrawlReels,
-    handleGetSnapshot,
   } = useModel("crawl-facebook.crawl-facebook");
 
-  const [historyList, setHistoryList] = useState<ISnapshotHistoryItem[]>([]);
-  const [detailModalOpen, setDetailModalOpen] = useState<boolean>(false);
-  const [selectedSnapshotId, setSelectedSnapshotId] = useState<string>("");
-  const [selectedSnapshotType, setSelectedSnapshotType] = useState<string>("");
-  const [snapshotData, setSnapshotData] = useState<any[]>([]);
-
-  useEffect(() => {
-    const cached = localStorage.getItem("crawl_facebook_snapshots_history");
-    if (cached) {
-      try {
-        setHistoryList(JSON.parse(cached));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  }, []);
-
-  const addSnapshotToHistory = (id: string, type: string, urlsCount: number, localRecords?: any[]) => {
-    const newItem: ISnapshotHistoryItem = {
-      id,
-      type,
-      time: Math.floor(Date.now() / 1000),
-      urls_count: urlsCount,
-      local_records: localRecords,
-    };
-    const updated = [newItem, ...historyList].slice(0, 50); // limit to 50 items
-    setHistoryList(updated);
-    localStorage.setItem("crawl_facebook_snapshots_history", JSON.stringify(updated));
-  };
+  // Local state to trigger RecordsTable refresh
+  const [recordsReloadKey, setRecordsReloadKey] = useState<number>(0);
 
   const isSubmitting =
     crawlPagePostsLoading ||
@@ -134,65 +96,12 @@ const CrawlFacebookPanel: React.FC = () => {
       res = await handleCrawlReels(payload);
     }
 
-    // If snapshot task request succeeded, record it
+    // If snapshot task request succeeded, trigger records reload
     if (res?.success) {
-      const snapId = res?.data?.snapshot_id;
-      const rawRecords = res?.data?.records || res?.data?.results || res?.data;
-      const recordsArray = Array.isArray(rawRecords)
-        ? rawRecords
-        : (rawRecords && Array.isArray(rawRecords.records)
-          ? rawRecords.records
-          : (rawRecords && Array.isArray(rawRecords.results)
-            ? rawRecords.results
-            : null));
-
-      if (snapId) {
-        addSnapshotToHistory(snapId, scraper_type, urlList.length);
-      } else if (recordsArray && Array.isArray(recordsArray)) {
-        const fakeId = `sync_${Math.random().toString(36).substr(2, 9)}`;
-        addSnapshotToHistory(fakeId, scraper_type, urlList.length, recordsArray);
-        setSelectedSnapshotId(fakeId);
-        setSelectedSnapshotType(scraper_type);
-        setSnapshotData(recordsArray);
-        setDetailModalOpen(true);
-      } else {
-        const fakeId = `sync_${Math.random().toString(36).substr(2, 9)}`;
-        const fallback = res?.data ? (Array.isArray(res.data) ? res.data : [res.data]) : [];
-        addSnapshotToHistory(fakeId, scraper_type, urlList.length, fallback);
-        setSelectedSnapshotId(fakeId);
-        setSelectedSnapshotType(scraper_type);
-        setSnapshotData(fallback);
-        setDetailModalOpen(true);
-      }
+      setRecordsReloadKey((prev) => prev + 1);
       return true;
     }
     return false;
-  };
-
-  const handleViewSnapshot = async (id: string, type: string) => {
-    setSelectedSnapshotId(id);
-    setSelectedSnapshotType(type);
-    setSnapshotData([]);
-    setDetailModalOpen(true);
-
-    if (id.startsWith("sync_")) {
-      const historyItem = historyList.find((h) => h.id === id);
-      if (historyItem && historyItem.local_records) {
-        setSnapshotData(historyItem.local_records);
-      }
-      return;
-    }
-
-    const res = await handleGetSnapshot(id, { scraper_type: type });
-    if (res?.success && Array.isArray(res.data)) {
-      setSnapshotData(res.data);
-    } else if (res?.success && res.data?.results && Array.isArray(res.data.results)) {
-      setSnapshotData(res.data.results);
-    } else if (res?.success && res.data?.records && Array.isArray(res.data.records)) {
-      setSnapshotData(res.data.records);
-    } else if (res?.success && res.data) {
-      setSnapshotData(Array.isArray(res.data) ? res.data : [res.data]);
-    }
   };
 
   return (
@@ -202,29 +111,16 @@ const CrawlFacebookPanel: React.FC = () => {
       </Title>
 
       <Row gutter={[24, 24]}>
-        <Col xs={24} lg={14}>
+        <Col span={24}>
           <CrawlForm loading={isSubmitting} onSubmit={handleSubmitCrawl} />
-        </Col>
-
-        <Col xs={24} lg={10}>
-          <HistoryTable
-            dataSource={historyList}
-            onView={handleViewSnapshot}
-            colorPrimary={token.colorPrimary}
-          />
         </Col>
       </Row>
 
-      <DetailModal
-        open={detailModalOpen}
-        loading={snapshotLoading}
-        snapshotId={selectedSnapshotId}
-        snapshotType={selectedSnapshotType}
-        data={snapshotData}
-        onCancel={() => setDetailModalOpen(false)}
-        onRefresh={() => handleViewSnapshot(selectedSnapshotId, selectedSnapshotType)}
-        colorPrimary={token.colorPrimary}
-      />
+      <Row gutter={[24, 24]}>
+        <Col span={24}>
+          <RecordsTable reloadKey={recordsReloadKey} colorPrimary={token.colorPrimary} />
+        </Col>
+      </Row>
     </div>
   );
 };

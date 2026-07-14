@@ -28,7 +28,6 @@ const CrawlSourceManager: React.FC = () => {
   const {
     crawlSources,
     crawlSourcesLoading,
-    runCrawlSourceLoading,
     refreshKey,
     handleGetCrawlSources,
     handleDeleteCrawlSource,
@@ -39,6 +38,7 @@ const CrawlSourceManager: React.FC = () => {
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [methodForm, setMethodForm] = useState<"post" | "put">("post");
   const [currentRecord, setCurrentRecord] = useState<MCrawlSource.IRecord | undefined>(undefined);
+  const [runningSourceId, setRunningSourceId] = useState<number | null>(null);
 
   // Fetch initial data
   useEffect(() => {
@@ -144,10 +144,15 @@ const CrawlSourceManager: React.FC = () => {
           <Tooltip title="Chạy crawl ngay lập tức">
             <Button
               onClick={async () => {
-                await handleRunCrawlSource(record.id);
+                setRunningSourceId(record.id);
+                try {
+                  await handleRunCrawlSource(record.id);
+                } finally {
+                  setRunningSourceId(null);
+                }
               }}
               type="link"
-              loading={runCrawlSourceLoading}
+              loading={runningSourceId === record.id}
               icon={<PlayCircleOutlined style={{ color: "#52c41a", fontSize: "16px" }} />}
             />
           </Tooltip>
