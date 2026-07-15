@@ -2,10 +2,8 @@ import TableStaticData from "@/components/Table/TableStaticData";
 import { IColumn } from "@/components/Table/typing";
 import { FilterOutlined, SyncOutlined } from "@ant-design/icons";
 import { useLocation, useModel } from "@umijs/max";
-import { Button, Col, Form, Input, InputNumber, Modal, Row, theme, Tooltip, Typography } from "antd"
+import { Button, Card, Col, Form, Input, InputNumber, Modal, Row, theme, Tooltip, Typography } from "antd"
 import { useEffect, useState } from "react";
-
-const { Title } = Typography;
 
 
 const StatisticTvetEmployment = () => {
@@ -274,41 +272,46 @@ const StatisticTvetEmployment = () => {
           </Row>
         </Form>
       </Modal>
-      <Title level={4} style={{ color: token.colorPrimary, marginBottom: 5 }}>Thống kê việc làm sau đào tạo nghề</Title>
-      <TableStaticData
-        columns={columns}
-        data={dataSource || []}
-        addStt={true}
-        loading={statisticTvetEmploymentLoading}
-        hasTotal
-        otherButtons={[
-          <>
-            <Tooltip title={statusExtract === "COMPLETED" ? "Cập nhật dữ liệu mới" : "Đang cập nhật dữ liệu"}>
-              <Button
-                onClick={async () => {
-                  const res = await handleExtractTvetEmployment();
-                  if (res?.task_id) {
-                    updateTaskId(res.task_id);
-                    setStatusExtract("PENDING");
-                  }
-                }}
-                disabled={statusExtract === "PENDING" || statusExtract === "PROCESSING" ? true : false}
-              >
-                <SyncOutlined spin={statusExtract === "PENDING" || statusExtract === "PROCESSING" ? true : false} />
-              </Button>
-            </Tooltip>
-            <Tooltip title="Bộ lọc">
-              <Button
-                onClick={async () => {
-                  setOpenFilter(true)
-                }}
-                icon={<FilterOutlined />}
-              >
-              </Button>
-            </Tooltip>
-          </>
-        ]}
-      />
+      <Card
+        title={<span style={{ color: token.colorPrimary }}>Thống kê việc làm sau đào tạo nghề</span>}
+        style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", marginTop: 24 }}
+      >
+        <TableStaticData
+          columns={columns}
+          data={dataSource || []}
+          addStt={true}
+          loading={statisticTvetEmploymentLoading}
+          hasTotal
+          onReload={() => handleStatisticTvetEmployment(params)}
+          otherButtons={[
+            <>
+              <Tooltip title={statusExtract === "COMPLETED" ? "Cập nhật dữ liệu mới" : "Đang cập nhật dữ liệu"}>
+                <Button
+                  onClick={async () => {
+                    const res = await handleExtractTvetEmployment();
+                    if (res?.task_id) {
+                      updateTaskId(res.task_id);
+                      setStatusExtract("PENDING");
+                    }
+                  }}
+                  disabled={statusExtract === "PENDING" || statusExtract === "PROCESSING" ? true : false}
+                >
+                  <SyncOutlined spin={statusExtract === "PENDING" || statusExtract === "PROCESSING" ? true : false} />
+                </Button>
+              </Tooltip>
+              <Tooltip title="Bộ lọc">
+                <Button
+                  onClick={async () => {
+                    setOpenFilter(true)
+                  }}
+                  icon={<FilterOutlined />}
+                >
+                </Button>
+              </Tooltip>
+            </>
+          ]}
+        />
+      </Card>
     </>
   )
 }

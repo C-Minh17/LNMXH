@@ -4,7 +4,7 @@ import StatisticHighschoolGraduationDetail from "./components/StatisticHighschoo
 import StatisticTvetEmployment from "./components/StatisticTvetEmployment";
 
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 const StatisticEconomyAndWork = () => {
   const { token } = theme.useToken();

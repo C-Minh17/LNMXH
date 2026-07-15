@@ -2,14 +2,14 @@ import TableStaticData from "@/components/Table/TableStaticData"
 import { IColumn } from "@/components/Table/typing"
 import { DeleteOutlined, EditOutlined, ExportOutlined } from "@ant-design/icons"
 import { history, useModel } from "@umijs/max"
-import { Button, message, Popconfirm, Tag, theme, Tooltip, Typography } from "antd"
+import { Button, Card, message, Popconfirm, Tag, theme, Tooltip, Typography } from "antd"
 import { useEffect, useMemo, useState } from "react"
 import FormPostV2 from "./components/form"
 
 const { Title } = Typography
 
 const ManagePosts = () => {
-  const { refreshKey, dataType, handleGetDataTypePostV2, dataTypeLoading } = useModel("manage-post.manage-post")
+  const { refreshKey, triggerReload, dataType, handleGetDataTypePostV2, dataTypeLoading } = useModel("manage-post.manage-post")
   const { token } = theme.useToken()
 
   const [openModal, setOpenMadal] = useState<boolean>(false);
@@ -97,19 +97,25 @@ const ManagePosts = () => {
   return (
     <>
       {/* <FormPostV2 open={openModal} setOpen={setOpenMadal} method={methodForm} initialValues={postv2Detail} /> */}
-      <Title level={2} style={{ color: token.colorPrimary, marginBottom: 50 }}>Quản lý bài viết</Title>
-      <TableStaticData
-        columns={columns}
-        data={tableData || []}
-        addStt={true}
-        hasTotal
-        loading={dataTypeLoading}
-        hasCreate
-        setShowEdit={() => {
-          setMethodForm("post")
-          setOpenMadal(true)
-        }}
-      />
+      <Title level={2} style={{ color: token.colorPrimary, marginBottom: 20 }}>Quản lý nguồn bài viết</Title>
+      <Card
+        title="Danh sách nguồn bài viết"
+        style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", marginTop: 24 }}
+      >
+        <TableStaticData
+          columns={columns}
+          data={tableData || []}
+          addStt={true}
+          hasTotal
+          loading={dataTypeLoading}
+          hasCreate
+          setShowEdit={() => {
+            setMethodForm("post")
+            setOpenMadal(true)
+          }}
+          onReload={triggerReload}
+        />
+      </Card>
     </>
   )
 }

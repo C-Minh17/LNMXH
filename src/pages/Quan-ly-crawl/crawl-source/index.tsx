@@ -9,6 +9,7 @@ import { useModel } from "@umijs/max";
 import {
   Badge,
   Button,
+  Card,
   Popconfirm,
   Tag,
   theme,
@@ -191,16 +192,20 @@ const CrawlSourceManager: React.FC = () => {
         Danh sách nguồn thu thập tin bài
       </Title>
 
-      <TableStaticData
-        columns={columns}
-        data={crawlSources || []}
-        addStt={true}
-        hasTotal={true}
-        loading={crawlSourcesLoading}
-        hasCreate={true}
-        setShowEdit={handleCreateClick}
-        onReload={triggerReload}
-      />
+      <Card
+        style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", marginTop: 24 }}
+      >
+        <TableStaticData
+          columns={columns}
+          data={crawlSources || []}
+          addStt={true}
+          hasTotal={true}
+          loading={crawlSourcesLoading}
+          hasCreate={true}
+          setShowEdit={handleCreateClick}
+          onReload={triggerReload}
+        />
+      </Card>
 
       <FormCrawlSource
         open={openModal}

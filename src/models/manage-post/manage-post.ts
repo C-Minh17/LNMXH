@@ -227,6 +227,7 @@ export default () => {
     loadingPostV2,
 
     refreshKey,
+    triggerReload,
 
     handleGetAllPostV2,
     handleGetPostV2Detail,

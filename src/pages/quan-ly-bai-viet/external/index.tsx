@@ -2,7 +2,7 @@ import TableStaticData from "@/components/Table/TableStaticData"
 import { IColumn } from "@/components/Table/typing"
 import { DeleteOutlined, EditOutlined, ExportOutlined, FilterOutlined } from "@ant-design/icons"
 import { history, useModel } from "@umijs/max"
-import { Button, message, Modal, Popconfirm, theme, Tooltip, Typography } from "antd"
+import { Button, Card, message, Modal, Popconfirm, theme, Tooltip, Typography } from "antd"
 import { useEffect, useState } from "react"
 import FormPostV2 from "./components/form"
 import FormFilterParams from "./components/formFilter"
@@ -10,7 +10,7 @@ import FormFilterParams from "./components/formFilter"
 const { Title } = Typography
 
 const ManagePosts = () => {
-  const { refreshKey, postFilterDocumentType, postFilterDocumentTypeLoading, handlePostFilterDocumentType, handleDeletePostV2, dataType, handleGetDataTypePostV2 } = useModel("manage-post.manage-post")
+  const { refreshKey, triggerReload, postFilterDocumentType, postFilterDocumentTypeLoading, handlePostFilterDocumentType, handleDeletePostV2, dataType, handleGetDataTypePostV2 } = useModel("manage-post.manage-post")
   const { token } = theme.useToken()
 
   const [openModal, setOpenModal] = useState<boolean>(false);
@@ -156,33 +156,39 @@ const ManagePosts = () => {
         <FormFilterParams setParams={setParams} setOpenFilter={setOpenFilter} params={params} />
       </Modal>
       <FormPostV2 open={openModal} setOpen={setOpenModal} method={methodForm} initialValues={postv2Detail} />
-      <Title level={2} style={{ color: token.colorPrimary, marginBottom: 50 }}>Quản lý bài viết</Title>
-      <TableStaticData
-        columns={columns}
-        data={postFilterDocumentType || []}
-        addStt={true}
-        hasTotal
-        loading={postFilterDocumentTypeLoading}
-        otherButtons={[
-          <>
-            <Tooltip title="Bộ lọc">
-              <Button
-                onClick={async () => {
-                  setOpenFilter(true)
-                }}
-                icon={<FilterOutlined />}
-              >
-              </Button>
-            </Tooltip>
-          </>
-        ]}
-      // hasCreate
-      // setShowEdit={() => {
-      //   setMethodForm("post")
-      //   setPostv2Detail(undefined)
-      //   setOpenMadal(true)
-      // }}
-      />
+      <Title level={2} style={{ color: token.colorPrimary, marginBottom: 10 }}>Quản lý bài viết</Title>
+      <Card
+        title="Danh sách bài viết từ bên ngoài"
+        style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", marginTop: 24 }}
+      >
+        <TableStaticData
+          columns={columns}
+          data={postFilterDocumentType || []}
+          addStt={true}
+          hasTotal
+          loading={postFilterDocumentTypeLoading}
+          onReload={triggerReload}
+          otherButtons={[
+            <>
+              <Tooltip title="Bộ lọc">
+                <Button
+                  onClick={async () => {
+                    setOpenFilter(true)
+                  }}
+                  icon={<FilterOutlined />}
+                >
+                </Button>
+              </Tooltip>
+            </>
+          ]}
+        // hasCreate
+        // setShowEdit={() => {
+        //   setMethodForm("post")
+        //   setPostv2Detail(undefined)
+        //   setOpenMadal(true)
+        // }}
+        />
+      </Card>
     </>
   )
 }
