@@ -158,7 +158,7 @@ const ManagePosts = () => {
       <FormPostV2 open={openModal} setOpen={setOpenModal} method={methodForm} initialValues={postv2Detail} />
       <Title level={2} style={{ color: token.colorPrimary, marginBottom: 10 }}>Quản lý bài viết</Title>
       <Card
-        title="Danh sách bài viết nội bộ"
+        title={<span style={{ color: token.colorPrimary }}>Danh sách bài viết nội bộ</span>}
         style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", marginTop: 24 }}
       >
         <TableStaticData

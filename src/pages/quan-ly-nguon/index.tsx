@@ -97,7 +97,7 @@ const ManagePosts = () => {
     <>
       <Title level={2} style={{ color: token.colorPrimary, marginBottom: 20 }}>Quản lý nguồn bài viết</Title>
       <Card
-        title="Danh sách nguồn bài viết"
+        title={<span style={{ color: token.colorPrimary }}>Danh sách nguồn bài viết</span>}
         style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", marginTop: 24 }}
       >
         <TableStaticData
