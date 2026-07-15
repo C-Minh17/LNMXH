@@ -4,7 +4,6 @@ import { DeleteOutlined, EditOutlined, ExportOutlined } from "@ant-design/icons"
 import { history, useModel } from "@umijs/max"
 import { Button, Card, message, Popconfirm, Tag, theme, Tooltip, Typography } from "antd"
 import { useEffect, useMemo, useState } from "react"
-import FormPostV2 from "./components/form"
 
 const { Title } = Typography
 
@@ -96,7 +95,6 @@ const ManagePosts = () => {
 
   return (
     <>
-      {/* <FormPostV2 open={openModal} setOpen={setOpenMadal} method={methodForm} initialValues={postv2Detail} /> */}
       <Title level={2} style={{ color: token.colorPrimary, marginBottom: 20 }}>Quản lý nguồn bài viết</Title>
       <Card
         title="Danh sách nguồn bài viết"
