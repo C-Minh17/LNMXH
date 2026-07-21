@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   Col,
+  DatePicker,
   Form,
   Input,
   InputNumber,
@@ -15,6 +16,7 @@ import {
   Tooltip,
   Typography,
 } from "antd";
+import dayjs from "dayjs";
 import React, { useEffect, useMemo, useState } from "react";
 
 const { Title, Text } = Typography;
@@ -69,14 +71,29 @@ const FormCrawlSource: React.FC<FormCrawlSourceProps> = ({
       if (method === "put" && initialValues) {
         const typeKey = `${initialValues.platform}::${initialValues.scraper_type}`;
         setSelectedTypeKey(typeKey);
+
+        // Convert date configs to dayjs
+        const matched = crawlSourceTypes.find(
+          (t) => t.platform === initialValues.platform && t.scraper_type === initialValues.scraper_type
+        );
+        const fields = matched?.fields || [];
+        const initialConfig = { ...initialValues.config };
+        fields.forEach((field) => {
+          if (field.type === "date" || field.name.includes("date")) {
+            const val = initialConfig[field.name];
+            if (val) {
+              initialConfig[field.name] = dayjs(val);
+            }
+          }
+        });
+
         form.setFieldsValue({
           name: initialValues.name,
           description: initialValues.description,
           frequency_minutes: initialValues.frequency_minutes,
-          limit_per_input: initialValues.limit_per_input,
           is_active: initialValues.is_active,
           type: typeKey,
-          config: initialValues.config,
+          config: initialConfig,
         });
       } else {
         setSelectedTypeKey("");
@@ -84,22 +101,41 @@ const FormCrawlSource: React.FC<FormCrawlSourceProps> = ({
         form.setFieldsValue({
           is_active: true,
           frequency_minutes: 720,
-          limit_per_input: 0,
         });
       }
     }
-  }, [open, initialValues, method, form]);
+  }, [open, initialValues, method, form, crawlSourceTypes]);
+
   const onFinish = async (values: any) => {
-    const { name, description, frequency_minutes, limit_per_input, is_active, type, config } = values;
+    const { name, description, frequency_minutes, is_active, type, config } = values;
     const [platform, scraper_type] = type.split("::");
+
+    // Format any dayjs date objects inside config
+    const matched = crawlSourceTypes.find(
+      (t) => t.platform === platform && t.scraper_type === scraper_type
+    );
+    const fields = matched?.fields || [];
+    const formattedConfig = { ...config };
+
+    fields.forEach((field) => {
+      const val = formattedConfig[field.name];
+      if (val === undefined || val === null) return;
+
+      if (field.type === "date" || field.name.includes("date")) {
+        if (platform === "facebook") {
+          formattedConfig[field.name] = dayjs(val).format("MM-DD-YYYY");
+        } else {
+          formattedConfig[field.name] = dayjs(val).toISOString();
+        }
+      }
+    });
 
     const payload: MCrawlSource.ICreateSource = {
       name,
       description,
       frequency_minutes,
-      limit_per_input: limit_per_input !== undefined ? limit_per_input : 0,
       is_active,
-      config: config || {},
+      config: formattedConfig,
       platform,
       scraper_type,
     };
@@ -154,7 +190,7 @@ const FormCrawlSource: React.FC<FormCrawlSourceProps> = ({
         </Form.Item>
 
         <Row gutter={16}>
-          <Col span={8}>
+          <Col span={12}>
             <Form.Item
               name="frequency_minutes"
               label="Tần suất cào (phút)"
@@ -163,16 +199,7 @@ const FormCrawlSource: React.FC<FormCrawlSourceProps> = ({
               <InputNumber min={1} style={{ width: "100%" }} placeholder="Ví dụ: 720" />
             </Form.Item>
           </Col>
-          <Col span={8}>
-            <Form.Item
-              name="limit_per_input"
-              label="Giới hạn đầu vào"
-              rules={[{ required: true, message: "Vui lòng nhập giới hạn đầu vào!" }]}
-            >
-              <InputNumber min={0} style={{ width: "100%" }} placeholder="Ví dụ: 50" />
-            </Form.Item>
-          </Col>
-          <Col span={8}>
+          <Col span={12}>
             <Form.Item
               name="is_active"
               label="Trạng thái hoạt động"
@@ -234,6 +261,13 @@ const FormCrawlSource: React.FC<FormCrawlSourceProps> = ({
                 );
               } else if (field.type === "boolean") {
                 inputComponent = <Switch checkedChildren="Bật" unCheckedChildren="Tắt" />;
+              } else if (field.type === "date" || field.name.includes("date")) {
+                inputComponent = (
+                  <DatePicker
+                    style={{ width: "100%" }}
+                    placeholder={field.description || `Chọn ${field.label}`}
+                  />
+                );
               }
 
               return (
