@@ -4,6 +4,7 @@ import {
   DeleteOutlined,
   EditOutlined,
   PlayCircleOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import { useModel } from "@umijs/max";
 import {
@@ -19,6 +20,9 @@ import {
 import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 import FormCrawlSource from "./components/form";
+import CrawlRecordsModal from "./components/recordsModal";
+import { QuickCrawlModal } from "./components/quickCrawlModal";
+import { CrawlHistoryTable } from "./components/crawlHistoryTable";
 
 const { Title, Text } = Typography;
 
@@ -37,9 +41,12 @@ const CrawlSourceManager: React.FC = () => {
   } = useModel("crawl-source.crawl-source");
 
   const [openModal, setOpenModal] = useState<boolean>(false);
+  const [quickCrawlOpen, setQuickCrawlOpen] = useState<boolean>(false);
   const [methodForm, setMethodForm] = useState<"post" | "put">("post");
   const [currentRecord, setCurrentRecord] = useState<MCrawlSource.IRecord | undefined>(undefined);
-  const [runningSourceId, setRunningSourceId] = useState<number | null>(null);
+  const [runningSources, setRunningSources] = useState<Record<number, boolean>>({});
+  const [recordsModalOpen, setRecordsModalOpen] = useState<boolean>(false);
+  const [selectedSourceForRecords, setSelectedSourceForRecords] = useState<MCrawlSource.IRecord | undefined>(undefined);
 
   // Fetch initial data
   useEffect(() => {
@@ -145,16 +152,26 @@ const CrawlSourceManager: React.FC = () => {
           <Tooltip title="Chạy crawl ngay lập tức">
             <Button
               onClick={async () => {
-                setRunningSourceId(record.id);
+                setRunningSources((prev) => ({ ...prev, [record.id]: true }));
                 try {
                   await handleRunCrawlSource(record.id);
                 } finally {
-                  setRunningSourceId(null);
+                  setRunningSources((prev) => ({ ...prev, [record.id]: false }));
                 }
               }}
               type="link"
-              loading={runningSourceId === record.id}
+              loading={!!runningSources[record.id]}
               icon={<PlayCircleOutlined style={{ color: "#52c41a", fontSize: "16px" }} />}
+            />
+          </Tooltip>
+          <Tooltip title="Xem chi tiết kết quả cào">
+            <Button
+              onClick={() => {
+                setSelectedSourceForRecords(record);
+                setRecordsModalOpen(true);
+              }}
+              type="link"
+              icon={<EyeOutlined style={{ color: "#1890ff", fontSize: "16px" }} />}
             />
           </Tooltip>
           <Tooltip title="Chỉnh sửa">
@@ -193,6 +210,7 @@ const CrawlSourceManager: React.FC = () => {
       </Title>
 
       <Card
+        title={<span style={{ fontSize: 18, fontWeight: "bold", color: token.colorPrimary }}>Danh sách nguồn thu thập bài viết</span>}
         style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", marginTop: 24 }}
       >
         <TableStaticData
@@ -204,6 +222,21 @@ const CrawlSourceManager: React.FC = () => {
           hasCreate={true}
           setShowEdit={handleCreateClick}
           onReload={triggerReload}
+          otherButtons={[
+            <Button
+              key="quick-crawl"
+              onClick={() => setQuickCrawlOpen(true)}
+              icon={<PlayCircleOutlined />}
+              style={{
+                borderRadius: 6,
+                backgroundColor: token.colorSuccess,
+                borderColor: token.colorSuccess,
+                color: "#fff",
+              }}
+            >
+              Crawl nhanh
+            </Button>
+          ]}
         />
       </Card>
 
@@ -213,6 +246,22 @@ const CrawlSourceManager: React.FC = () => {
         method={methodForm}
         initialValues={currentRecord}
       />
+
+      <QuickCrawlModal
+        open={quickCrawlOpen}
+        setOpen={setQuickCrawlOpen}
+      />
+
+      <CrawlRecordsModal
+        open={recordsModalOpen}
+        onCancel={() => {
+          setRecordsModalOpen(false);
+          setSelectedSourceForRecords(undefined);
+        }}
+        source={selectedSourceForRecords}
+      />
+
+      <CrawlHistoryTable />
     </>
   );
 };

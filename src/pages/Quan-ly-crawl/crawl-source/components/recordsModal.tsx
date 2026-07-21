@@ -1,123 +1,89 @@
-import { EyeOutlined, CopyOutlined } from "@ant-design/icons";
+import { CopyOutlined, EyeOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
 import {
   Button,
   Card,
-  Form,
-  Input,
-  Select,
+  Descriptions,
+  message,
+  Modal,
   Space,
   Tag,
   Tooltip,
-  Modal,
-  Descriptions,
-  Spin,
-  message,
   Typography,
 } from "antd";
+import dayjs from "dayjs";
+import React, { useEffect, useState } from "react";
 import TableStaticData from "@/components/Table/TableStaticData";
 import { IColumn } from "@/components/Table/typing";
-import React, { useEffect, useState } from "react";
-import dayjs from "dayjs";
-import { useModel } from "@umijs/max";
 
 const { Text, Link } = Typography;
 
-interface RecordsTableProps {
-  colorPrimary?: string;
-  reloadKey?: number;
+interface CrawlRecordsModalProps {
+  open: boolean;
+  onCancel: () => void;
+  source?: MCrawlSource.IRecord;
 }
 
-export const RecordsTable: React.FC<RecordsTableProps> = ({ colorPrimary, reloadKey }) => {
-  const { handleGetFacebookRecords, handleGetFacebookRecordDetail } = useModel("crawl-facebook.crawl-facebook");
+export const CrawlRecordsModal: React.FC<CrawlRecordsModalProps> = ({
+  open,
+  onCancel,
+  source,
+}) => {
+  const { handleGetCrawlSourceRecords } = useModel(
+    "crawl-source.crawl-source"
+  );
 
-  const [records, setRecords] = useState<MCrawlFacebook.IRecord[]>([]);
+  const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [total, setTotal] = useState<number>(0);
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
 
-  const [form] = Form.useForm();
-
   const [detailOpen, setDetailOpen] = useState<boolean>(false);
-  const [detailRecord, setDetailRecord] = useState<MCrawlFacebook.IRecord | null>(null);
-  const [detailLoading, setDetailLoading] = useState<boolean>(false);
+  const [detailRecord, setDetailRecord] = useState<any>(null);
 
   const fetchRecords = async (currentPage = page, currentPageSize = pageSize) => {
+    if (!source) return;
     setLoading(true);
     try {
-      const values = form.getFieldsValue();
-      const payload: MCrawlFacebook.IRecordParams = {
+      const res = await handleGetCrawlSourceRecords(source.id, {
         page: currentPage,
         page_size: currentPageSize,
-        scraper_type: values.scraper_type || undefined,
-        snapshot_id: values.snapshot_id ? values.snapshot_id.trim() : undefined,
-      };
-
-      if (values.only_errors === "errors") {
-        payload.only_errors = true;
-      } else if (values.only_errors === "success") {
-        payload.only_errors = false;
-      }
-
-      const res = await handleGetFacebookRecords(payload);
+      });
       if (res?.success) {
         setRecords(res.data || []);
-        if (res.metadata) {
-          setTotal(res.metadata.total || 0);
-        } else {
-          setTotal(res.data?.length || 0);
-        }
+        setTotal(res.metadata?.total || res.data?.length || 0);
       } else {
         setRecords([]);
         setTotal(0);
       }
     } catch (error) {
       console.error(error);
-      message.error("Lỗi lấy danh sách dữ liệu đã cào");
+      message.error("Lỗi lấy danh sách kết quả crawl");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchRecords(1, pageSize);
-    setPage(1);
-  }, [pageSize]);
+    if (open && source) {
+      setPage(1);
+      fetchRecords(1, pageSize);
+    } else {
+      setRecords([]);
+      setTotal(0);
+    }
+  }, [open, source, pageSize]);
 
   useEffect(() => {
-    fetchRecords(page, pageSize);
+    if (open && source && page > 1) {
+      fetchRecords(page, pageSize);
+    }
   }, [page]);
 
-  useEffect(() => {
-    if (reloadKey) {
-      fetchRecords(1, pageSize);
-      setPage(1);
-    }
-  }, [reloadKey]);
-
-  const handleSearch = () => {
-    setPage(1);
-    fetchRecords(1, pageSize);
-  };
-
-  const handleViewDetail = async (recordId: number) => {
-    setDetailLoading(true);
+  const handleViewDetail = async (record: any) => {
+    setDetailRecord(record);
     setDetailOpen(true);
-    try {
-      const res = await handleGetFacebookRecordDetail(recordId);
-      if (res?.success && res.data) {
-        setDetailRecord(res.data);
-      } else {
-        message.error("Không tìm thấy chi tiết bản ghi");
-        setDetailOpen(false);
-      }
-    } catch (error) {
-      console.error(error);
-      message.error("Lỗi lấy chi tiết bản ghi");
-      setDetailOpen(false);
-    } finally {
-      setDetailLoading(false);
-    }
   };
 
   const formatTime = (ts: any) => {
@@ -134,7 +100,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({ colorPrimary, reload
     message.success("Đã sao chép vào bộ nhớ tạm");
   };
 
-  const columns: IColumn<MCrawlFacebook.IRecord>[] = [
+  const columns: IColumn<any>[] = [
     {
       title: "ID",
       dataIndex: "id",
@@ -155,18 +121,6 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({ colorPrimary, reload
       ),
     },
     {
-      title: "Loại Scraper",
-      dataIndex: "scraper_type",
-      key: "scraper_type",
-      width: 150,
-      render: (type: string) => {
-        let color = "blue";
-        if (type?.includes("post")) color = "purple";
-        if (type?.includes("reel")) color = "orange";
-        return <Tag color={color}>{type || "-"}</Tag>;
-      },
-    },
-    {
       title: "Record URL",
       dataIndex: "record_url",
       key: "record_url",
@@ -185,7 +139,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({ colorPrimary, reload
       title: "Trạng thái cào",
       key: "status",
       width: 130,
-      render: (_, record: MCrawlFacebook.IRecord) => {
+      render: (_: any, record: any) => {
         if (record.error) {
           return (
             <Tooltip title={record.error}>
@@ -209,12 +163,12 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({ colorPrimary, reload
       align: "center" as const,
       width: 100,
       fixed: "right" as const,
-      render: (_, record: MCrawlFacebook.IRecord) => (
+      render: (_: any, record: any) => (
         <Tooltip title="Xem chi tiết dữ liệu cào">
           <Button
             type="link"
             icon={<EyeOutlined />}
-            onClick={() => handleViewDetail(record.id)}
+            onClick={() => handleViewDetail(record)}
           />
         </Tooltip>
       ),
@@ -222,61 +176,72 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({ colorPrimary, reload
   ];
 
   return (
-    <Card title="Danh sách dữ liệu đã thu thập từ Facebook" style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", marginTop: 24 }}>
-      <TableStaticData
-        data={records}
-        columns={columns}
-        loading={loading}
-        onReload={() => fetchRecords(page, pageSize)}
-        hasTotal={true}
-        otherProps={{
-          rowKey: "id",
-          scroll: { x: 900 },
-          pagination: {
-            current: page,
-            pageSize: pageSize,
-            total: total,
-            showSizeChanger: true,
-            onChange: (p: number, ps: number) => {
-              setPage(p);
-              setPageSize(ps);
-            },
-          },
-        }}
+    <>
+      <Modal
+        title={
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: 18, fontWeight: "bold" }}>
+              Kết quả crawl gần nhất: {source?.name}
+            </span>
+            {source?.platform && (
+              <Tag
+                color={
+                  source.platform === "facebook"
+                    ? "blue"
+                    : source.platform === "tiktok"
+                      ? "magenta"
+                      : source.platform === "instagram"
+                        ? "orange"
+                        : "cyan"
+                }
+                style={{ textTransform: "capitalize", fontWeight: "bold" }}
+              >
+                {source.platform}
+              </Tag>
+            )}
+          </div>
+        }
+        open={open}
+        onCancel={onCancel}
+        footer={[
+          <Button key="close" onClick={onCancel}>
+            Đóng
+          </Button>,
+        ]}
+        width={950}
+        destroyOnClose
       >
-        <Form
-          form={form}
-          layout="inline"
-          onValuesChange={handleSearch}
-          style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}
-        >
-          <Form.Item name="scraper_type" style={{ marginBottom: 0 }}>
-            <Select placeholder="Loại cào" style={{ width: 140 }} allowClear>
-              <Select.Option value="page-posts">page-posts</Select.Option>
-              <Select.Option value="group-posts">group-posts</Select.Option>
-              <Select.Option value="profiles">profiles</Select.Option>
-              <Select.Option value="pages-profiles">pages-profiles</Select.Option>
-              <Select.Option value="reels">reels</Select.Option>
-            </Select>
-          </Form.Item>
-          <Form.Item name="snapshot_id" style={{ marginBottom: 0 }}>
-            <Input placeholder="Snapshot ID" style={{ width: 150 }} allowClear />
-          </Form.Item>
-          <Form.Item name="only_errors" style={{ marginBottom: 0 }}>
-            <Select placeholder="Trạng thái cào" style={{ width: 140 }} allowClear>
-              <Select.Option value="all">Tất cả</Select.Option>
-              <Select.Option value="success">Thành công</Select.Option>
-              <Select.Option value="errors">Chỉ record lỗi</Select.Option>
-            </Select>
-          </Form.Item>
-        </Form>
-      </TableStaticData>
+        <Card style={{ borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.05)", margin: "8px 0" }} >
+          <TableStaticData
+            data={records}
+            columns={columns}
+            loading={loading}
+            onReload={() => fetchRecords(page, pageSize)}
+            hasTotal={true}
+            otherProps={{
+              rowKey: "id",
+              scroll: { x: 800 },
+              pagination: {
+                current: page,
+                pageSize: pageSize,
+                total: total,
+                showSizeChanger: true,
+                onChange: (p: number, ps: number) => {
+                  setPage(p);
+                  setPageSize(ps);
+                },
+              },
+            }}
+          />
+        </Card>
+      </Modal>
 
+      {/* Nested detail modal */}
       <Modal
         title={
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "95%" }}>
-            <span style={{ fontSize: 18, fontWeight: "bold", color: colorPrimary }}>
-              Chi tiết Record Facebook: #{detailRecord?.id}
+            <span style={{ fontSize: 18, fontWeight: "bold" }}>
+              Chi tiết Record <span style={{ textTransform: "capitalize" }}>{source?.platform}</span>: #{detailRecord?.id}
             </span>
             {detailRecord?.scraper_type && (
               <Tag color="purple" style={{ textTransform: "uppercase" }}>
@@ -305,12 +270,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({ colorPrimary, reload
         destroyOnClose
       >
         <div style={{ minHeight: 250, padding: "10px 0" }}>
-          {detailLoading ? (
-            <div style={{ textAlign: "center", padding: "80px 0" }}>
-              <Spin size="large" />
-              <div style={{ marginTop: 10 }}>Đang tải chi tiết bản ghi...</div>
-            </div>
-          ) : detailRecord ? (
+          {detailRecord ? (
             <Space direction="vertical" size="large" style={{ width: "100%" }}>
               <Descriptions bordered column={2} size="small">
                 <Descriptions.Item label="ID">{detailRecord.id}</Descriptions.Item>
@@ -329,6 +289,13 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({ colorPrimary, reload
                 {detailRecord.error && (
                   <Descriptions.Item label="Lỗi cào" span={2}>
                     <Text type="danger">{detailRecord.error}</Text>
+                  </Descriptions.Item>
+                )}
+                {detailRecord.script && (
+                  <Descriptions.Item label="Transcript (STT)" span={2}>
+                    <div style={{ maxHeight: 150, overflowY: "auto", whiteSpace: "pre-wrap" }}>
+                      {detailRecord.script}
+                    </div>
                   </Descriptions.Item>
                 )}
               </Descriptions>
@@ -362,8 +329,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({ colorPrimary, reload
           )}
         </div>
       </Modal>
-    </Card>
+    </>
   );
 };
-
-export default RecordsTable;
+export default CrawlRecordsModal;

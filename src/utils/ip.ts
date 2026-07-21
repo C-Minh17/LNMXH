@@ -17,6 +17,8 @@ const ipPost_v1 = ipRoot + "/v1/posts"
 const ipCrawlSource = ipRoot + "/v3/crawl-sources"
 const ipFacebookBrightdata = ipRoot + "/v3/facebook-brightdata"
 const ipTiktokBrightdata = ipRoot + "/v3/tiktok-brightdata"
+const ipInstagramBrightdata = ipRoot + "/v3/instagram-brightdata"
+const ipThreadsBrightdata = ipRoot + "/v3/threads-brightdata"
 
 const currentRole = EModuleKey.TCNS;
 const replaceRole: EModuleKey | undefined = undefined; //EModuleKey.CONG_CAN_BO; // Thay đổi theo từng phân hệ
@@ -54,4 +56,6 @@ export {
 	ipCrawlSource,
 	ipFacebookBrightdata,
 	ipTiktokBrightdata,
+	ipInstagramBrightdata,
+	ipThreadsBrightdata,
 };

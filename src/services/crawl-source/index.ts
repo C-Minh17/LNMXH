@@ -28,3 +28,7 @@ export async function deleteCrawlSource(source_id: number) {
 export async function runCrawlSource(source_id: number) {
   return await axios.post(`${ipCrawlSource}/${source_id}/run`);
 }
+
+export async function getCrawlSourceRecords(source_id: number, params?: any) {
+  return await axios.get(`${ipCrawlSource}/${source_id}/records`, { params }).then((res) => res.data);
+}

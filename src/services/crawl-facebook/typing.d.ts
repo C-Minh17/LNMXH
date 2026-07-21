@@ -60,6 +60,7 @@ declare module MCrawlFacebook {
     order?: 'asc' | 'desc';
     page_size?: number;
     page?: number;
+    source_id?: number;
   }
 
   interface IRecord {

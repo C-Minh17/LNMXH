@@ -6,6 +6,7 @@ import {
   getCrawlSources,
   runCrawlSource,
   updateCrawlSource,
+  getCrawlSourceRecords,
 } from "@/services/crawl-source";
 import { message } from "antd";
 import { useState } from "react";
@@ -132,6 +133,8 @@ export default () => {
     }
   };
 
+  const [crawlSourceRecordsLoading, setCrawlSourceRecordsLoading] = useState<boolean>(false);
+
   const handleRunCrawlSource = async (source_id: number) => {
     setRunCrawlSourceLoading(true);
     try {
@@ -150,6 +153,20 @@ export default () => {
     }
   };
 
+  const handleGetCrawlSourceRecords = async (source_id: number, params?: any) => {
+    setCrawlSourceRecordsLoading(true);
+    try {
+      const res = await getCrawlSourceRecords(source_id, params);
+      return res;
+    } catch (error) {
+      console.error(error);
+      message.error("Lỗi lấy kết quả crawl của nguồn");
+      return null;
+    } finally {
+      setCrawlSourceRecordsLoading(false);
+    }
+  };
+
   return {
     crawlSources,
     crawlSourcesLoading,
@@ -160,6 +177,7 @@ export default () => {
     crawlSourceTypesLoading,
     loadingCrawlSource,
     runCrawlSourceLoading,
+    crawlSourceRecordsLoading,
     refreshKey,
     triggerReload,
     handleGetCrawlSources,
@@ -169,5 +187,6 @@ export default () => {
     handleUpdateCrawlSource,
     handleDeleteCrawlSource,
     handleRunCrawlSource,
+    handleGetCrawlSourceRecords,
   };
 };

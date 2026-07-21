@@ -1,8 +1,5 @@
-declare module MCrawlTiktok {
-  // --- I. CRAWL PROFILE ---
-
+declare module MCrawlThreads {
   interface IProfileInput {
-    country?: string;
     url: string;
   }
 
@@ -10,62 +7,25 @@ declare module MCrawlTiktok {
     input: IProfileInput[];
   }
 
-  interface ISearchProfileInput {
-    country?: string;
-    search_url: string;
-  }
-
-  interface ISearchProfileRequest {
-    input: ISearchProfileInput[];
-  }
-
-  // --- II. CRAWL POSTS / VIDEOS ---
 
   interface IPostInput {
-    country?: string;
     url: string;
   }
 
   interface IPostRequest {
     input: IPostInput[];
-    with_script?: boolean;
   }
 
-  interface IKeywordPostInput {
-    country?: string;
-    search_keyword: string;
+  interface IDiscoverProfilePostInput {
+    profile_url: string;
+    start_date: string; // ISO 8601 string
+    end_date: string; // ISO 8601 string
   }
 
-  interface IKeywordPostRequest {
-    input: IKeywordPostInput[];
-    with_script?: boolean;
+  interface IDiscoverProfilePostRequest {
+    input: IDiscoverProfilePostInput[];
   }
 
-  interface IProfilePostInput {
-    num_of_posts?: number;
-    url: string;
-    what_to_collect?: string;
-  }
-
-  interface IProfilePostRequest {
-    input: IProfilePostInput[];
-    with_script?: boolean;
-  }
-
-  interface IDiscoverPostInput {
-    URL: string;
-  }
-
-  interface IDiscoverPostRequest {
-    input: IDiscoverPostInput[];
-    with_script?: boolean;
-  }
-
-  // --- III. XỬ LÝ TRANSCRIPT (STT) & LẤY KẾT QUẢ ASYNC ---
-
-  interface IProcessScriptsParams {
-    limit?: number;
-  }
 
   interface ISnapshotParams {
     scraper_type?: string;
@@ -75,7 +35,6 @@ declare module MCrawlTiktok {
     scraper_type?: string;
     snapshot_id?: string;
     only_errors?: boolean;
-    has_script?: boolean;
     sort_by?: string;
     order?: 'asc' | 'desc';
     page_size?: number;
@@ -94,11 +53,8 @@ declare module MCrawlTiktok {
     record_url: string;
     error?: string;
     raw_data?: any;
-    has_script?: boolean;
-    script?: string;
   }
 
-  // --- COMMON RESPONSES ---
 
   interface IBaseResponse<T = any> {
     http_code: number;
@@ -116,6 +72,7 @@ declare module MCrawlTiktok {
     dataset_id?: string;
     scraper_type?: string;
     snapshot_id?: string;
+    status?: string;
     total_records?: number;
     saved_count?: number;
     records?: R[];

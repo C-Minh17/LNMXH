@@ -99,27 +99,33 @@ export default [
 		icon: "AppstoreOutlined",
 		component: './quan-ly-nguon',
 	},
+	// {
+	// 	name: "Quản lý crawl",
+	// 	path: "/quan-ly-crawl",
+	// 	icon: "CopyOutlined",
+	// 	routes: [
+	// 		{
+	// 			name: 'Nguồn crawl tin bài',
+	// 			path: '/quan-ly-crawl/crawl-source',
+	// 			component: './Quan-ly-crawl/crawl-source',
+	// 		},
+	// 		{
+	// 			name: 'Crawl từ facebook',
+	// 			path: '/quan-ly-crawl/crawl-facebook',
+	// 			component: './Quan-ly-crawl/crawl-facebook',
+	// 		},
+	// 		{
+	// 			name: 'Crawl từ tiktok',
+	// 			path: '/quan-ly-crawl/crawl-tiktok',
+	// 			component: './Quan-ly-crawl/crawl-tiktok',
+	// 		},
+	// 	]
+	// },
 	{
 		name: "Quản lý crawl",
 		path: "/quan-ly-crawl",
 		icon: "CopyOutlined",
-		routes: [
-			{
-				name: 'Nguồn crawl tin bài',
-				path: '/quan-ly-crawl/crawl-source',
-				component: './Quan-ly-crawl/crawl-source',
-			},
-			{
-				name: 'Crawl từ facebook',
-				path: '/quan-ly-crawl/crawl-facebook',
-				component: './Quan-ly-crawl/crawl-facebook',
-			},
-			{
-				name: 'Crawl từ tiktok',
-				path: '/quan-ly-crawl/crawl-tiktok',
-				component: './Quan-ly-crawl/crawl-tiktok',
-			},
-		]
+		component: './Quan-ly-crawl/crawl-source',
 	},
 	{
 		name: "chi tiết bài viết",

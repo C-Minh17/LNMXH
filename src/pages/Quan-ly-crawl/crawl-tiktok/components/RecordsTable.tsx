@@ -240,7 +240,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({ colorPrimary, reload
 
   return (
     <Card
-      title="Danh sách cào TikTok"
+      title="Danh sách dữ liệu đã thu thập từ TikTok"
       style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", marginTop: 24 }}
     >
       <TableStaticData
