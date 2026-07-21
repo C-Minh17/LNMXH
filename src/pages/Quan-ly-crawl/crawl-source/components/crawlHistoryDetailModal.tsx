@@ -1,6 +1,6 @@
 import { CopyOutlined } from "@ant-design/icons";
 import { Button, Card, Descriptions, Modal, Space, Spin, Tag, Typography, message } from "antd";
-import dayjs from "dayjs";
+import dayjs from "@/utils/dayjs";
 import React from "react";
 
 const { Text, Link, Paragraph } = Typography;
@@ -26,9 +26,9 @@ export const CrawlHistoryDetailModal: React.FC<CrawlHistoryDetailModalProps> = (
     if (!ts) return "-";
     if (typeof ts === "number") {
       const isMillis = ts > 9999999999;
-      return dayjs(isMillis ? ts : ts * 1000).format("DD-MM-YYYY HH:mm");
+      return dayjs(isMillis ? ts : ts * 1000).tz().format("DD-MM-YYYY HH:mm");
     }
-    return dayjs(ts).format("DD-MM-YYYY HH:mm");
+    return dayjs(ts).tz().format("DD-MM-YYYY HH:mm");
   };
 
   const copyToClipboard = (text: string) => {
@@ -70,7 +70,7 @@ export const CrawlHistoryDetailModal: React.FC<CrawlHistoryDetailModalProps> = (
           <Space direction="vertical" size="large" style={{ width: "100%" }}>
             <Descriptions bordered column={2} size="small">
               <Descriptions.Item label="ID">{record.id}</Descriptions.Item>
-              <Descriptions.Item label="Thời gian cào">{formatTime(record.created_at)}</Descriptions.Item>
+              <Descriptions.Item label="Thời gian cào">{formatTime(record.raw_data?.timestamp || record.created_at)}</Descriptions.Item>
               <Descriptions.Item label="Nền tảng">
                 <span style={{ textTransform: "capitalize", fontWeight: "bold" }}>
                   {activePlatform}

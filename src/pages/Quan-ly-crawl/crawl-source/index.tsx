@@ -17,7 +17,7 @@ import {
   Tooltip,
   Typography,
 } from "antd";
-import dayjs from "dayjs";
+import dayjs from "@/utils/dayjs";
 import React, { useEffect, useState } from "react";
 import FormCrawlSource from "./components/form";
 import CrawlRecordsModal from "./components/recordsModal";
@@ -25,6 +25,15 @@ import { QuickCrawlModal } from "./components/quickCrawlModal";
 import { CrawlHistoryTable } from "./components/crawlHistoryTable";
 
 const { Title, Text } = Typography;
+
+const formatTime = (ts: any, format = "HH:mm DD/MM/YYYY") => {
+  if (!ts) return "-";
+  if (typeof ts === "number") {
+    const isMillis = ts > 9999999999;
+    return dayjs(isMillis ? ts : ts * 1000).tz().format(format);
+  }
+  return dayjs(ts).tz().format(format);
+};
 
 const CrawlSourceManager: React.FC = () => {
   const { token } = theme.useToken();
@@ -133,14 +142,14 @@ const CrawlSourceManager: React.FC = () => {
       dataIndex: "last_run_at",
       sortable: true,
       width: 180,
-      render: (val) => (val ? dayjs(val * 1000).format("HH:mm DD/MM/YYYY") : "-"),
+      render: (val) => formatTime(val),
     },
     {
       title: "Chạy tiếp theo",
       dataIndex: "next_run_at",
       sortable: true,
       width: 180,
-      render: (val) => (val ? dayjs(val * 1000).format("HH:mm DD/MM/YYYY") : "-"),
+      render: (val) => formatTime(val),
     },
     {
       title: "Thao tác",

@@ -17,7 +17,7 @@ import {
 import TableStaticData from "@/components/Table/TableStaticData";
 import { IColumn } from "@/components/Table/typing";
 import React, { useEffect, useState } from "react";
-import dayjs from "dayjs";
+import dayjs from "@/utils/dayjs";
 import { useModel } from "@umijs/max";
 
 const { Text, Link } = Typography;
@@ -124,9 +124,9 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({ colorPrimary, reload
     if (!ts) return "-";
     if (typeof ts === "number") {
       const isMillis = ts > 9999999999;
-      return dayjs(isMillis ? ts : ts * 1000).format("DD-MM-YYYY HH:mm");
+      return dayjs(isMillis ? ts : ts * 1000).tz().format("DD-MM-YYYY HH:mm");
     }
-    return dayjs(ts).format("DD-MM-YYYY HH:mm");
+    return dayjs(ts).tz().format("DD-MM-YYYY HH:mm");
   };
 
   const copyToClipboard = (text: string) => {
@@ -201,7 +201,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({ colorPrimary, reload
       dataIndex: "created_at",
       key: "created_at",
       width: 150,
-      render: (time: any) => formatTime(time),
+      render: (time: any, record: any) => formatTime(record?.raw_data?.timestamp || time),
     },
     {
       title: "Thao tác",
@@ -314,7 +314,7 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({ colorPrimary, reload
             <Space direction="vertical" size="large" style={{ width: "100%" }}>
               <Descriptions bordered column={2} size="small">
                 <Descriptions.Item label="ID">{detailRecord.id}</Descriptions.Item>
-                <Descriptions.Item label="Thời gian cào">{formatTime(detailRecord.created_at)}</Descriptions.Item>
+                 <Descriptions.Item label="Thời gian cào">{formatTime(detailRecord.raw_data?.timestamp || detailRecord.created_at)}</Descriptions.Item>
                 <Descriptions.Item label="Loại Scraper">{detailRecord.scraper_type}</Descriptions.Item>
                 <Descriptions.Item label="Dataset ID">{detailRecord.dataset_id || "-"}</Descriptions.Item>
                 <Descriptions.Item label="Snapshot ID" span={2}>

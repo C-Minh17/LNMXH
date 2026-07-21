@@ -12,7 +12,7 @@ import {
   Typography,
   message,
 } from "antd";
-import dayjs from "dayjs";
+import dayjs from "@/utils/dayjs";
 import React, { useEffect, useMemo, useState } from "react";
 import TableStaticData from "@/components/Table/TableStaticData";
 import { IColumn } from "@/components/Table/typing";
@@ -158,9 +158,9 @@ export const CrawlHistoryTable: React.FC<CrawlHistoryTableProps> = ({ reloadKey 
     if (!ts) return "-";
     if (typeof ts === "number") {
       const isMillis = ts > 9999999999;
-      return dayjs(isMillis ? ts : ts * 1000).format("DD-MM-YYYY HH:mm");
+      return dayjs(isMillis ? ts : ts * 1000).tz().format("DD-MM-YYYY HH:mm");
     }
-    return dayjs(ts).format("DD-MM-YYYY HH:mm");
+    return dayjs(ts).tz().format("DD-MM-YYYY HH:mm");
   };
 
 
@@ -250,7 +250,7 @@ export const CrawlHistoryTable: React.FC<CrawlHistoryTableProps> = ({ reloadKey 
         dataIndex: "created_at",
         key: "created_at",
         width: 150,
-        render: (time: any) => formatTime(time),
+        render: (time: any, record: any) => formatTime(record?.raw_data?.timestamp || time),
       },
       {
         title: "Thao tác",
