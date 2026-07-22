@@ -1,31 +1,79 @@
-import { PageContainer } from '@ant-design/pro-components';
-import { useModel } from '@umijs/max';
-import { Divider, Skeleton, Space } from 'antd';
-import { PageHeaderContent } from './components/page-header-content';
+import { ReloadOutlined } from "@ant-design/icons";
+import { useModel } from "@umijs/max";
+import { Button, Skeleton, Space, Typography } from "antd";
+import React, { useEffect } from "react";
+import GeneralOverview from "./components/GeneralOverview";
+import PlatformStats from "./components/PlatformStats";
+import DistributionBreakdown from "./components/DistributionBreakdown";
+import PerSourceTable from "./components/PerSourceTable";
 
-const DashboardPage = () => {
-	const { initialState } = useModel('@@initialState');
+const { Title, Text } = Typography;
 
-	if (!initialState || !initialState.currentUser) {
-		return (
-			<PageContainer>
-				<Skeleton
-					avatar
-					paragraph={{
-						rows: 3,
-					}}
-					active
-				/>
-			</PageContainer>
-		);
-	}
+const DashboardPage: React.FC = () => {
+	const {
+		crawlSourceDashboard,
+		crawlSourceDashboardLoading,
+		handleGetCrawlSourceDashboard,
+	} = useModel("crawl-source.crawl-source");
 
-	const currentUser = initialState.currentUser;
+	useEffect(() => {
+		handleGetCrawlSourceDashboard();
+	}, []);
+
+	const sourcesData = crawlSourceDashboard?.sources;
+	const recordsData = crawlSourceDashboard?.records;
+	const perSourceList = crawlSourceDashboard?.per_source || [];
 
 	return (
-		<>
-			Trang chủ
-		</>
+		<div style={{ padding: 24, maxWidth: 1500, margin: "0 auto" }}>
+			<div
+				style={{
+					display: "flex",
+					justifyContent: "space-between",
+					alignItems: "center",
+					marginBottom: 24,
+				}}
+			>
+				<div>
+					<Title level={3} style={{ margin: 0 }}>
+						Dashboard Thống Kê Tổng Quan Hệ Thống Crawler
+					</Title>
+					<Text type="secondary">
+						Báo cáo chi tiết về các nguồn thu thập, số lượng bản ghi và trạng thái vận hành
+					</Text>
+				</div>
+				<Button
+					type="primary"
+					icon={<ReloadOutlined />}
+					loading={crawlSourceDashboardLoading}
+					onClick={() => handleGetCrawlSourceDashboard()}
+				>
+					Tải lại dữ liệu
+				</Button>
+			</div>
+
+			{crawlSourceDashboardLoading && !crawlSourceDashboard ? (
+				<Skeleton active paragraph={{ rows: 10 }} />
+			) : (
+				<Space direction="vertical" size="large" style={{ width: "100%" }}>
+					<div>
+						<GeneralOverview sourcesData={sourcesData} recordsData={recordsData} />
+					</div>
+
+					<div>
+						<PlatformStats recordsData={recordsData} />
+					</div>
+
+					<DistributionBreakdown sourcesData={sourcesData} />
+
+					<PerSourceTable
+						perSourceList={perSourceList}
+						loading={crawlSourceDashboardLoading}
+						onReload={() => handleGetCrawlSourceDashboard()}
+					/>
+				</Space>
+			)}
+		</div>
 	);
 };
 

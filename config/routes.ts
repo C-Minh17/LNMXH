@@ -22,12 +22,12 @@ export default [
 	///////////////////////////////////
 
 	// DEFAULT MENU
-	// {
-	// 	name: 'dashboard',
-	// 	path: '/dashboard',
-	// 	component: './dashboard',
-	// 	icon: 'HomeOutlined',
-	// },
+	{
+		name: 'Tổng quan',
+		path: '/dashboard',
+		component: './dashboard',
+		icon: 'DashboardOutlined',
+	},
 	{
 		path: '/notification',
 		routes: [
@@ -58,9 +58,15 @@ export default [
 		hideInMenu: true,
 	},
 	{
+		name: "Quản lý crawl",
+		path: "/quan-ly-crawl",
+		icon: "CloudSyncOutlined",
+		component: './Quan-ly-crawl/crawl-source',
+	},
+	{
 		name: "Quản lý bài viết",
 		path: "/quan-ly-bai-viet",
-		icon: "CopyOutlined",
+		icon: "FileTextOutlined",
 		routes: [
 			{
 				path: '/quan-ly-bai-viet',
@@ -94,7 +100,7 @@ export default [
 		]
 	},
 	{
-		name: "Quản lý nguồn",
+		name: "Danh sách nguồn",
 		path: "/social-sources",
 		icon: "AppstoreOutlined",
 		component: './quan-ly-nguon',
@@ -120,13 +126,7 @@ export default [
 	// 			component: './Quan-ly-crawl/crawl-tiktok',
 	// 		},
 	// 	]
-	// },
-	{
-		name: "Quản lý crawl",
-		path: "/quan-ly-crawl",
-		icon: "CopyOutlined",
-		component: './Quan-ly-crawl/crawl-source',
-	},
+	// }
 	{
 		name: "chi tiết bài viết",
 		path: "/quan-ly-bai-viet/:post_id",
@@ -251,7 +251,7 @@ export default [
 
 	{
 		path: '/',
-		redirect: '/quan-ly-bai-viet',
+		redirect: '/dashboard',
 	},
 	{
 		path: '/403',

@@ -7,6 +7,7 @@ import {
   runCrawlSource,
   updateCrawlSource,
   getCrawlSourceRecords,
+  getCrawlSourceDashboard,
 } from "@/services/crawl-source";
 import { message } from "antd";
 import { useState } from "react";
@@ -21,6 +22,9 @@ export default () => {
 
   const [crawlSourceTypes, setCrawlSourceTypes] = useState<MCrawlSource.ISourceType[]>([]);
   const [crawlSourceTypesLoading, setCrawlSourceTypesLoading] = useState<boolean>(false);
+
+  const [crawlSourceDashboard, setCrawlSourceDashboard] = useState<MCrawlSource.IDashboardData>();
+  const [crawlSourceDashboardLoading, setCrawlSourceDashboardLoading] = useState<boolean>(false);
 
   const [loadingCrawlSource, setLoadingCrawlSource] = useState<boolean>(false);
   const [runCrawlSourceLoading, setRunCrawlSourceLoading] = useState<boolean>(false);
@@ -76,6 +80,23 @@ export default () => {
       message.error("Lỗi lấy cấu hình loại nguồn crawl");
     } finally {
       setCrawlSourceTypesLoading(false);
+    }
+  };
+
+  const handleGetCrawlSourceDashboard = async () => {
+    setCrawlSourceDashboardLoading(true);
+    try {
+      const res = await getCrawlSourceDashboard();
+      if (res?.data) {
+        setCrawlSourceDashboard(res.data);
+      }
+      return res;
+    } catch (error) {
+      console.error(error);
+      message.error("Lỗi lấy thông tin thống kê dashboard");
+      return null;
+    } finally {
+      setCrawlSourceDashboardLoading(false);
     }
   };
 
@@ -175,6 +196,8 @@ export default () => {
     crawlSourceDetailLoading,
     crawlSourceTypes,
     crawlSourceTypesLoading,
+    crawlSourceDashboard,
+    crawlSourceDashboardLoading,
     loadingCrawlSource,
     runCrawlSourceLoading,
     crawlSourceRecordsLoading,
@@ -183,6 +206,7 @@ export default () => {
     handleGetCrawlSources,
     handleGetCrawlSourceDetail,
     handleGetCrawlSourceTypes,
+    handleGetCrawlSourceDashboard,
     handleCreateCrawlSource,
     handleUpdateCrawlSource,
     handleDeleteCrawlSource,

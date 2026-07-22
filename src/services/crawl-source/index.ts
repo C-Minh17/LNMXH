@@ -32,3 +32,7 @@ export async function runCrawlSource(source_id: number) {
 export async function getCrawlSourceRecords(source_id: number, params?: any) {
   return await axios.get(`${ipCrawlSource}/${source_id}/records`, { params }).then((res) => res.data);
 }
+
+export async function getCrawlSourceDashboard(): Promise<MCrawlSource.IDashboardResponse> {
+  return await axios.get(`${ipCrawlSource}/dashboard`).then((res) => res.data);
+}

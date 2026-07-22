@@ -48,4 +48,46 @@ declare module MCrawlSource {
     dataset_id: string;
     fields: ISourceField[];
   }
+
+  interface IDashboardSources {
+    total: number;
+    active: number;
+    inactive: number;
+    by_platform: Record<string, number>;
+    by_scraper_type: Record<string, number>;
+  }
+
+  interface IDashboardRecords {
+    total: number;
+    facebook: number;
+    tiktok: number;
+    tiktok_with_script: number;
+    instagram: number;
+    threads: number;
+  }
+
+  interface IDashboardPerSource {
+    id: number;
+    name: string;
+    platform: string;
+    scraper_type: string;
+    is_active: boolean;
+    records_count: number;
+    last_run_at: number;
+    next_run_at: number;
+  }
+
+  interface IDashboardData {
+    sources: IDashboardSources;
+    records: IDashboardRecords;
+    per_source: IDashboardPerSource[];
+  }
+
+  interface IDashboardResponse {
+    http_code: number;
+    success: boolean;
+    message: string | null;
+    metadata: any;
+    data: IDashboardData;
+  }
 }
