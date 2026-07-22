@@ -7,7 +7,7 @@ interface CrawlHistoryFilterFormProps {
   onSearch: () => void;
 }
 
-const scraperOptionsMap: Record<string, { label: string; value: string }[]> = {
+export const scraperOptionsMap: Record<string, { label: string; value: string }[]> = {
   facebook: [
     { label: "page-posts (Fanpage)", value: "page-posts" },
     { label: "group-posts (Group)", value: "group-posts" },

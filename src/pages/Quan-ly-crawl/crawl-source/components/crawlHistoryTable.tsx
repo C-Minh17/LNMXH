@@ -5,7 +5,6 @@ import {
   Card,
   Form,
   Segmented,
-  Space,
   Tag,
   theme,
   Tooltip,
@@ -16,7 +15,8 @@ import dayjs from "@/utils/dayjs";
 import React, { useEffect, useMemo, useState } from "react";
 import TableStaticData from "@/components/Table/TableStaticData";
 import { IColumn } from "@/components/Table/typing";
-import CrawlHistoryFilterForm from "./crawlHistoryFilterForm";
+import { getSourceName, getPostContent, getRecordUrl } from "@/utils/crawlUtils";
+import { CrawlHistoryFilterForm, scraperOptionsMap } from "./crawlHistoryFilterForm";
 import CrawlHistoryDetailModal from "./crawlHistoryDetailModal";
 
 const { Text, Link } = Typography;
@@ -28,96 +28,83 @@ interface CrawlHistoryTableProps {
 export const CrawlHistoryTable: React.FC<CrawlHistoryTableProps> = ({ reloadKey }) => {
   const { token } = theme.useToken();
   const [activePlatform, setActivePlatform] = useState<string>("facebook");
-  const [form] = Form.useForm();
-
-  // Load platform models
-  const fbModel = useModel("crawl-facebook.crawl-facebook");
-  const ttModel = useModel("crawl-tiktok.crawl-tiktok");
-  const igModel = useModel("crawl-ig.crawl-ig");
-  const thModel = useModel("crawl-threads.crawl-threads");
-
-  const [records, setRecords] = useState<any[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [total, setTotal] = useState<number>(0);
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
+  const [records, setRecords] = useState<any[]>([]);
+  const [total, setTotal] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [form] = Form.useForm();
 
   // Detail Modal State
   const [detailOpen, setDetailOpen] = useState<boolean>(false);
   const [detailRecord, setDetailRecord] = useState<any>(null);
   const [detailLoading, setDetailLoading] = useState<boolean>(false);
 
+  // Model actions
+  const crawlFacebookModel = useModel("crawl-facebook.crawl-facebook");
+  const crawlTiktokModel = useModel("crawl-tiktok.crawl-tiktok");
+  const crawlIgModel = useModel("crawl-ig.crawl-ig");
+  const crawlThreadsModel = useModel("crawl-threads.crawl-threads");
+
   const fetchRecords = async (currentPage = page, currentPageSize = pageSize) => {
     setLoading(true);
     try {
-      const values = form.getFieldsValue();
-      const payload: any = {
+      const formValues = form.getFieldsValue();
+      const params: any = {
         page: currentPage,
         page_size: currentPageSize,
-        scraper_type: values.scraper_type || undefined,
-        snapshot_id: values.snapshot_id ? values.snapshot_id.trim() : undefined,
       };
 
-      if (values.only_errors === "errors") {
-        payload.only_errors = true;
-      } else if (values.only_errors === "success") {
-        payload.only_errors = false;
+      if (formValues.scraper_type) {
+        params.scraper_type = formValues.scraper_type;
       }
-
-      if (activePlatform === "tiktok" && values.has_script !== undefined) {
-        if (values.has_script === "true") {
-          payload.has_script = true;
-        } else if (values.has_script === "false") {
-          payload.has_script = false;
-        }
+      if (formValues.snapshot_id) {
+        params.snapshot_id = formValues.snapshot_id;
+      }
+      if (formValues.status) {
+        params.status = formValues.status;
       }
 
       let res: any = null;
-      if (activePlatform === "facebook") {
-        res = await fbModel.handleGetFacebookRecords(payload);
-      } else if (activePlatform === "tiktok") {
-        res = await ttModel.handleGetTiktokRecords(payload);
-      } else if (activePlatform === "instagram") {
-        res = await igModel.handleGetIgRecords(payload);
-      } else if (activePlatform === "threads") {
-        res = await thModel.handleGetThreadsRecords(payload);
+      switch (activePlatform) {
+        case "tiktok":
+          res = await crawlTiktokModel.handleGetTiktokRecords(params);
+          break;
+        case "instagram":
+          res = await crawlIgModel.handleGetIgRecords(params);
+          break;
+        case "threads":
+          res = await crawlThreadsModel.handleGetThreadsRecords(params);
+          break;
+        default:
+          res = await crawlFacebookModel.handleGetFacebookRecords(params);
+          break;
       }
 
-      if (res?.success) {
+      if (res && res.data) {
         setRecords(res.data || []);
-        if (res.metadata) {
-          setTotal(res.metadata.total || 0);
-        } else {
-          setTotal(res.data?.length || 0);
-        }
+        setTotal(res.metadata?.total || res.data?.length || 0);
       } else {
         setRecords([]);
         setTotal(0);
       }
     } catch (error) {
-      console.error(error);
-      message.error("Lỗi lấy danh sách lịch sử cào");
+      console.error("Lỗi lấy danh sách bản ghi cào:", error);
+      setRecords([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
   };
 
-  // Triggers reload when page/pagesize or active platform changes
   useEffect(() => {
-    fetchRecords(1, pageSize);
     setPage(1);
-  }, [activePlatform, pageSize]);
+    fetchRecords(1, pageSize);
+  }, [activePlatform, reloadKey]);
 
   useEffect(() => {
     fetchRecords(page, pageSize);
-  }, [page]);
-
-  useEffect(() => {
-    if (reloadKey) {
-      fetchRecords(1, pageSize);
-      setPage(1);
-    }
-  }, [reloadKey]);
+  }, [page, pageSize]);
 
   const handleSearch = () => {
     setPage(1);
@@ -125,28 +112,32 @@ export const CrawlHistoryTable: React.FC<CrawlHistoryTableProps> = ({ reloadKey 
   };
 
   const handleViewDetail = async (recordId: number) => {
-    setDetailLoading(true);
     setDetailOpen(true);
+    setDetailLoading(true);
     try {
       let res: any = null;
-      if (activePlatform === "facebook") {
-        res = await fbModel.handleGetFacebookRecordDetail(recordId);
-      } else if (activePlatform === "tiktok") {
-        res = await ttModel.handleGetTiktokRecordDetail(recordId);
-      } else if (activePlatform === "instagram") {
-        res = await igModel.handleGetIgRecordDetail(recordId);
-      } else if (activePlatform === "threads") {
-        res = await thModel.handleGetThreadsRecordDetail(recordId);
+      switch (activePlatform) {
+        case "tiktok":
+          res = await crawlTiktokModel.handleGetTiktokRecordDetail(recordId);
+          break;
+        case "instagram":
+          res = await crawlIgModel.handleGetIgRecordDetail(recordId);
+          break;
+        case "threads":
+          res = await crawlThreadsModel.handleGetThreadsRecordDetail(recordId);
+          break;
+        default:
+          res = await crawlFacebookModel.handleGetFacebookRecordDetail(recordId);
+          break;
       }
 
-      if (res?.success && res.data) {
+      if (res && res.data) {
         setDetailRecord(res.data);
       } else {
-        message.error("Không tìm thấy chi tiết bản ghi");
-        setDetailOpen(false);
+        message.error("Không lấy được thông tin chi tiết bản ghi");
       }
     } catch (error) {
-      console.error(error);
+      console.error("Lỗi lấy chi tiết bản ghi:", error);
       message.error("Lỗi lấy chi tiết bản ghi");
       setDetailOpen(false);
     } finally {
@@ -163,33 +154,54 @@ export const CrawlHistoryTable: React.FC<CrawlHistoryTableProps> = ({ reloadKey 
     return dayjs(ts).tz().format("DD-MM-YYYY HH:mm");
   };
 
-
+  const processedRecords = useMemo(() => {
+    return (records || []).map((r) => ({
+      ...r,
+      _source_name: getSourceName(r),
+      _post_content: getPostContent(r),
+      _record_url: getRecordUrl(r),
+      _status: r.error ? "error" : "success",
+      _created_at_str: formatTime(r?.raw_data?.timestamp || r.created_at),
+    }));
+  }, [records]);
 
   const columns: IColumn<any>[] = useMemo(() => {
     const cols: IColumn<any>[] = [
       {
-        title: "ID",
-        dataIndex: "id",
-        key: "id",
-        width: 80,
+        title: "Tên nguồn",
+        dataIndex: "_source_name",
+        key: "source_name",
+        filterType: "string",
+        sortable: true,
+        width: 170,
+        ellipsis: true,
+        render: (srcName: string) => (
+          <Tooltip title={srcName !== "-" ? srcName : undefined}>
+            <Text strong>{srcName || "-"}</Text>
+          </Tooltip>
+        ),
       },
       {
-        title: "Snapshot ID",
-        dataIndex: "snapshot_id",
-        key: "snapshot_id",
-        width: 180,
-        render: (id: string) => (
-          <Space size="small">
-            <Text code copyable={{ text: id }}>
-              {id ? `${id.slice(0, 8)}...` : "-"}
-            </Text>
-          </Space>
+        title: "Nội dung",
+        dataIndex: "_post_content",
+        key: "post_content",
+        filterType: "string",
+        sortable: true,
+        width: 260,
+        ellipsis: true,
+        render: (content: string) => (
+          <Tooltip title={content !== "-" ? content : undefined}>
+            <Text>{content || "-"}</Text>
+          </Tooltip>
         ),
       },
       {
         title: "Loại Scraper",
         dataIndex: "scraper_type",
         key: "scraper_type",
+        filterType: "select",
+        filterData: scraperOptionsMap[activePlatform] || [],
+        sortable: true,
         width: 180,
         render: (type: string) => {
           let color = "blue";
@@ -200,12 +212,14 @@ export const CrawlHistoryTable: React.FC<CrawlHistoryTableProps> = ({ reloadKey 
       },
       {
         title: "Record URL",
-        dataIndex: "record_url",
+        dataIndex: "_record_url",
         key: "record_url",
+        filterType: "string",
+        sortable: true,
         width: 220,
         ellipsis: true,
         render: (url: string) =>
-          url ? (
+          url && url !== "-" ? (
             <Link href={url} target="_blank" rel="noopener noreferrer">
               {url}
             </Link>
@@ -215,10 +229,17 @@ export const CrawlHistoryTable: React.FC<CrawlHistoryTableProps> = ({ reloadKey 
       },
       {
         title: "Trạng thái",
+        dataIndex: "_status",
         key: "status",
+        filterType: "select",
+        filterData: [
+          { label: "Thành công", value: "success" },
+          { label: "Lỗi", value: "error" },
+        ],
+        sortable: true,
         width: 130,
-        render: (_, record: any) => {
-          if (record.error) {
+        render: (status: string, record: any) => {
+          if (status === "error" || record.error) {
             return (
               <Tooltip title={record.error}>
                 <Tag color="red">Lỗi</Tag>
@@ -235,6 +256,12 @@ export const CrawlHistoryTable: React.FC<CrawlHistoryTableProps> = ({ reloadKey 
         title: "Transcript",
         dataIndex: "has_script",
         key: "has_script",
+        filterType: "select",
+        filterData: [
+          { label: "Đã có", value: "true" },
+          { label: "Chưa có", value: "false" },
+        ],
+        sortable: true,
         width: 140,
         render: (hasScript: boolean) => (
           <Tag color={hasScript ? "success" : "default"}>
@@ -247,10 +274,11 @@ export const CrawlHistoryTable: React.FC<CrawlHistoryTableProps> = ({ reloadKey 
     cols.push(
       {
         title: "Thời gian cào",
-        dataIndex: "created_at",
+        dataIndex: "_created_at_str",
         key: "created_at",
+        filterType: "string",
+        sortable: true,
         width: 150,
-        render: (time: any, record: any) => formatTime(record?.raw_data?.timestamp || time),
       },
       {
         title: "Thao tác",
@@ -299,11 +327,12 @@ export const CrawlHistoryTable: React.FC<CrawlHistoryTableProps> = ({ reloadKey 
       style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", marginTop: 24 }}
     >
       <TableStaticData
-        data={records}
+        data={processedRecords}
         columns={columns}
         loading={loading}
         onReload={() => fetchRecords(page, pageSize)}
         hasTotal={true}
+        addStt={true}
         otherProps={{
           rowKey: "id",
           scroll: { x: 1000 },
@@ -340,3 +369,5 @@ export const CrawlHistoryTable: React.FC<CrawlHistoryTableProps> = ({ reloadKey 
     </Card>
   );
 };
+
+export default CrawlHistoryTable;

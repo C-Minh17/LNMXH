@@ -231,21 +231,21 @@ const CrawlSourceManager: React.FC = () => {
           hasCreate={true}
           setShowEdit={handleCreateClick}
           onReload={triggerReload}
-          otherButtons={[
-            <Button
-              key="quick-crawl"
-              onClick={() => setQuickCrawlOpen(true)}
-              icon={<PlayCircleOutlined />}
-              style={{
-                borderRadius: 6,
-                backgroundColor: token.colorSuccess,
-                borderColor: token.colorSuccess,
-                color: "#fff",
-              }}
-            >
-              Crawl nhanh
-            </Button>
-          ]}
+        // otherButtons={[
+        //   <Button
+        //     key="quick-crawl"
+        //     onClick={() => setQuickCrawlOpen(true)}
+        //     icon={<PlayCircleOutlined />}
+        //     style={{
+        //       borderRadius: 6,
+        //       backgroundColor: token.colorSuccess,
+        //       borderColor: token.colorSuccess,
+        //       color: "#fff",
+        //     }}
+        //   >
+        //     Crawl nhanh
+        //   </Button>
+        // ]}
         />
       </Card>
 

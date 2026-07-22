@@ -16,9 +16,10 @@ import {
 } from "antd";
 import TableStaticData from "@/components/Table/TableStaticData";
 import { IColumn } from "@/components/Table/typing";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import dayjs from "@/utils/dayjs";
 import { useModel } from "@umijs/max";
+import { getSourceName, getPostContent, getRecordUrl } from "@/utils/crawlUtils";
 
 const { Text, Link } = Typography;
 
@@ -134,104 +135,150 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({ colorPrimary, reload
     message.success("Đã sao chép vào bộ nhớ tạm");
   };
 
-  const columns: IColumn<MCrawlFacebook.IRecord>[] = [
-    {
-      title: "ID",
-      dataIndex: "id",
-      key: "id",
-      width: 80,
-    },
-    {
-      title: "Snapshot ID",
-      dataIndex: "snapshot_id",
-      key: "snapshot_id",
-      width: 180,
-      render: (id: string) => (
-        <Space size="small">
-          <Text code copyable={{ text: id }}>
-            {id ? `${id.slice(0, 8)}...` : "-"}
-          </Text>
-        </Space>
-      ),
-    },
-    {
-      title: "Loại Scraper",
-      dataIndex: "scraper_type",
-      key: "scraper_type",
-      width: 150,
-      render: (type: string) => {
-        let color = "blue";
-        if (type?.includes("post")) color = "purple";
-        if (type?.includes("reel")) color = "orange";
-        return <Tag color={color}>{type || "-"}</Tag>;
-      },
-    },
-    {
-      title: "Record URL",
-      dataIndex: "record_url",
-      key: "record_url",
-      width: 250,
-      ellipsis: true,
-      render: (url: string) =>
-        url ? (
-          <Link href={url} target="_blank" rel="noopener noreferrer">
-            {url}
-          </Link>
-        ) : (
-          "-"
+  const processedRecords = useMemo(() => {
+    return (records || []).map((r) => ({
+      ...r,
+      _source_name: getSourceName(r),
+      _post_content: getPostContent(r),
+      _record_url: getRecordUrl(r),
+      _status: r.error ? "error" : "success",
+      _created_at_str: formatTime(r?.raw_data?.timestamp || r.created_at),
+    }));
+  }, [records]);
+
+  const columns: IColumn<any>[] = useMemo(
+    () => [
+      {
+        title: "Tên nguồn",
+        dataIndex: "_source_name",
+        key: "source_name",
+        filterType: "string",
+        sortable: true,
+        width: 170,
+        ellipsis: true,
+        render: (srcName: string) => (
+          <Tooltip title={srcName !== "-" ? srcName : undefined}>
+            <Text strong>{srcName || "-"}</Text>
+          </Tooltip>
         ),
-    },
-    {
-      title: "Trạng thái cào",
-      key: "status",
-      width: 130,
-      render: (_, record: MCrawlFacebook.IRecord) => {
-        if (record.error) {
-          return (
-            <Tooltip title={record.error}>
-              <Tag color="red">Lỗi</Tag>
-            </Tooltip>
-          );
-        }
-        return <Tag color="green">Thành công</Tag>;
       },
-    },
-    {
-      title: "Thời gian cào",
-      dataIndex: "created_at",
-      key: "created_at",
-      width: 150,
-      render: (time: any, record: any) => formatTime(record?.raw_data?.timestamp || time),
-    },
-    {
-      title: "Thao tác",
-      key: "action",
-      align: "center" as const,
-      width: 100,
-      fixed: "right" as const,
-      render: (_, record: MCrawlFacebook.IRecord) => (
-        <Tooltip title="Xem chi tiết dữ liệu cào">
-          <Button
-            type="link"
-            icon={<EyeOutlined />}
-            onClick={() => handleViewDetail(record.id)}
-          />
-        </Tooltip>
-      ),
-    },
-  ];
+      {
+        title: "Nội dung bài đăng",
+        dataIndex: "_post_content",
+        key: "post_content",
+        filterType: "string",
+        sortable: true,
+        width: 260,
+        ellipsis: true,
+        render: (content: string) => (
+          <Tooltip title={content !== "-" ? content : undefined}>
+            <Text>{content || "-"}</Text>
+          </Tooltip>
+        ),
+      },
+      {
+        title: "Loại Scraper",
+        dataIndex: "scraper_type",
+        key: "scraper_type",
+        filterType: "select",
+        filterData: [
+          { label: "page-posts (Fanpage)", value: "page-posts" },
+          { label: "group-posts (Group)", value: "group-posts" },
+          { label: "profiles (Cá nhân)", value: "profiles" },
+          { label: "pages-profiles (Page & Profile)", value: "pages-profiles" },
+          { label: "reels (Video Reels)", value: "reels" },
+        ],
+        sortable: true,
+        width: 150,
+        render: (type: string) => {
+          let color = "blue";
+          if (type?.includes("post")) color = "purple";
+          if (type?.includes("reel")) color = "orange";
+          return <Tag color={color}>{type || "-"}</Tag>;
+        },
+      },
+      {
+        title: "Record URL",
+        dataIndex: "_record_url",
+        key: "record_url",
+        filterType: "string",
+        sortable: true,
+        width: 250,
+        ellipsis: true,
+        render: (url: string) =>
+          url && url !== "-" ? (
+            <Link href={url} target="_blank" rel="noopener noreferrer">
+              {url}
+            </Link>
+          ) : (
+            "-"
+          ),
+      },
+      {
+        title: "Trạng thái cào",
+        dataIndex: "_status",
+        key: "status",
+        filterType: "select",
+        filterData: [
+          { label: "Thành công", value: "success" },
+          { label: "Lỗi", value: "error" },
+        ],
+        sortable: true,
+        width: 130,
+        render: (status: string, record: any) => {
+          if (status === "error" || record.error) {
+            return (
+              <Tooltip title={record.error}>
+                <Tag color="red">Lỗi</Tag>
+              </Tooltip>
+            );
+          }
+          return <Tag color="green">Thành công</Tag>;
+        },
+      },
+      {
+        title: "Thời gian cào",
+        dataIndex: "_created_at_str",
+        key: "created_at",
+        filterType: "string",
+        sortable: true,
+        width: 150,
+      },
+      {
+        title: "Thao tác",
+        key: "action",
+        align: "center" as const,
+        width: 100,
+        fixed: "right" as const,
+        render: (_: any, record: any) => (
+          <Tooltip title="Xem chi tiết dữ liệu cào">
+            <Button
+              type="link"
+              icon={<EyeOutlined />}
+              onClick={() => handleViewDetail(record.id)}
+            />
+          </Tooltip>
+        ),
+      },
+    ],
+    []
+  );
 
   return (
-    <Card title="Danh sách dữ liệu đã thu thập từ Facebook" style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", marginTop: 24 }}>
+    <Card
+      title="Dữ liệu đã thu thập (Records)"
+      style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.05)", marginTop: 24 }}
+    >
       <TableStaticData
-        data={records}
+        data={processedRecords}
         columns={columns}
         loading={loading}
         onReload={() => fetchRecords(page, pageSize)}
         hasTotal={true}
+        addStt={true}
         otherProps={{
           rowKey: "id",
-          scroll: { x: 900 },
+          scroll: { x: 1000 },
           pagination: {
             current: page,
             pageSize: pageSize,
@@ -244,30 +291,33 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({ colorPrimary, reload
           },
         }}
       >
-        <Form
-          form={form}
-          layout="inline"
-          onValuesChange={handleSearch}
-          style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}
-        >
-          <Form.Item name="scraper_type" style={{ marginBottom: 0 }}>
-            <Select placeholder="Loại cào" style={{ width: 140 }} allowClear>
-              <Select.Option value="page-posts">page-posts</Select.Option>
-              <Select.Option value="group-posts">group-posts</Select.Option>
-              <Select.Option value="profiles">profiles</Select.Option>
-              <Select.Option value="pages-profiles">pages-profiles</Select.Option>
-              <Select.Option value="reels">reels</Select.Option>
+        <Form form={form} layout="inline" style={{ marginBottom: 16 }}>
+          <Form.Item name="scraper_type" label="Loại Scraper">
+            <Select placeholder="Tất cả loại" allowClear style={{ width: 180 }}>
+              <Select.Option value="page-posts">page-posts (Fanpage)</Select.Option>
+              <Select.Option value="group-posts">group-posts (Group)</Select.Option>
+              <Select.Option value="profiles">profiles (Cá nhân)</Select.Option>
+              <Select.Option value="pages-profiles">pages-profiles (Page & Profile)</Select.Option>
+              <Select.Option value="reels">reels (Video Reels)</Select.Option>
             </Select>
           </Form.Item>
-          <Form.Item name="snapshot_id" style={{ marginBottom: 0 }}>
-            <Input placeholder="Snapshot ID" style={{ width: 150 }} allowClear />
-          </Form.Item>
-          <Form.Item name="only_errors" style={{ marginBottom: 0 }}>
-            <Select placeholder="Trạng thái cào" style={{ width: 140 }} allowClear>
+
+          <Form.Item name="only_errors" label="Trạng thái">
+            <Select placeholder="Tất cả trạng thái" allowClear style={{ width: 160 }}>
               <Select.Option value="all">Tất cả</Select.Option>
               <Select.Option value="success">Thành công</Select.Option>
-              <Select.Option value="errors">Chỉ record lỗi</Select.Option>
+              <Select.Option value="errors">Chỉ bản ghi lỗi</Select.Option>
             </Select>
+          </Form.Item>
+
+          <Form.Item name="snapshot_id" label="Snapshot ID">
+            <Input placeholder="Nhập Snapshot ID..." allowClear style={{ width: 220 }} />
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" onClick={handleSearch}>
+              Tìm kiếm
+            </Button>
           </Form.Item>
         </Form>
       </TableStaticData>
@@ -276,32 +326,21 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({ colorPrimary, reload
         title={
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "95%" }}>
             <span style={{ fontSize: 18, fontWeight: "bold", color: colorPrimary }}>
-              Chi tiết Record Facebook: #{detailRecord?.id}
+              Chi tiết Record: #{detailRecord?.id}
             </span>
-            {detailRecord?.scraper_type && (
-              <Tag color="purple" style={{ textTransform: "uppercase" }}>
-                {detailRecord?.scraper_type}
-              </Tag>
-            )}
+            <Tag color="purple" style={{ textTransform: "uppercase" }}>
+              {detailRecord?.scraper_type}
+            </Tag>
           </div>
         }
         open={detailOpen}
-        onCancel={() => {
-          setDetailOpen(false);
-          setDetailRecord(null);
-        }}
+        onCancel={() => setDetailOpen(false)}
         footer={[
-          <Button
-            key="close"
-            onClick={() => {
-              setDetailOpen(false);
-              setDetailRecord(null);
-            }}
-          >
+          <Button key="close" onClick={() => setDetailOpen(false)}>
             Đóng
           </Button>,
         ]}
-        width={850}
+        width={900}
         destroyOnClose
       >
         <div style={{ minHeight: 250, padding: "10px 0" }}>
@@ -313,18 +352,25 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({ colorPrimary, reload
           ) : detailRecord ? (
             <Space direction="vertical" size="large" style={{ width: "100%" }}>
               <Descriptions bordered column={2} size="small">
-                <Descriptions.Item label="ID">{detailRecord.id}</Descriptions.Item>
-                 <Descriptions.Item label="Thời gian cào">{formatTime(detailRecord.raw_data?.timestamp || detailRecord.created_at)}</Descriptions.Item>
-                <Descriptions.Item label="Loại Scraper">{detailRecord.scraper_type}</Descriptions.Item>
-                <Descriptions.Item label="Dataset ID">{detailRecord.dataset_id || "-"}</Descriptions.Item>
-                <Descriptions.Item label="Snapshot ID" span={2}>
-                  <Text code copyable>{detailRecord.snapshot_id}</Text>
+                <Descriptions.Item label="Tên nguồn">
+                  <Text strong>{getSourceName(detailRecord)}</Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="Record ID">{detailRecord.record_id || "-"}</Descriptions.Item>
+                <Descriptions.Item label="Thời gian cào">
+                  {formatTime(detailRecord.raw_data?.timestamp || detailRecord.created_at)}
+                </Descriptions.Item>
+                <Descriptions.Item label="Snapshot ID">{detailRecord.snapshot_id || "-"}</Descriptions.Item>
+                <Descriptions.Item label="Loại Scraper">{detailRecord.scraper_type}</Descriptions.Item>
+                <Descriptions.Item label="Nội dung bài" span={2}>
+                  {getPostContent(detailRecord)}
+                </Descriptions.Item>
                 <Descriptions.Item label="Record URL" span={2}>
-                  <Link href={detailRecord.record_url} target="_blank" rel="noopener noreferrer">
-                    {detailRecord.record_url}
-                  </Link>
+                  {detailRecord.record_url ? (
+                    <Link href={detailRecord.record_url} target="_blank" rel="noopener noreferrer">
+                      {detailRecord.record_url}
+                    </Link>
+                  ) : (
+                    "-"
+                  )}
                 </Descriptions.Item>
                 {detailRecord.error && (
                   <Descriptions.Item label="Lỗi cào" span={2}>
@@ -365,5 +411,4 @@ export const RecordsTable: React.FC<RecordsTableProps> = ({ colorPrimary, reload
     </Card>
   );
 };
-
 export default RecordsTable;

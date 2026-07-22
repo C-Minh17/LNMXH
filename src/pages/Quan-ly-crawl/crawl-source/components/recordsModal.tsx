@@ -1,20 +1,19 @@
-import { CopyOutlined, EyeOutlined } from "@ant-design/icons";
+import { EyeOutlined } from "@ant-design/icons";
 import { useModel } from "@umijs/max";
 import {
   Button,
-  Card,
-  Descriptions,
   message,
   Modal,
-  Space,
   Tag,
   Tooltip,
   Typography,
 } from "antd";
 import dayjs from "@/utils/dayjs";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import TableStaticData from "@/components/Table/TableStaticData";
 import { IColumn } from "@/components/Table/typing";
+import { getSourceName, getPostContent, getRecordUrl } from "@/utils/crawlUtils";
+import CrawlHistoryDetailModal from "./crawlHistoryDetailModal";
 
 const { Text, Link } = Typography;
 
@@ -95,241 +94,169 @@ export const CrawlRecordsModal: React.FC<CrawlRecordsModalProps> = ({
     return dayjs(ts).tz().format("DD-MM-YYYY HH:mm");
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    message.success("Đã sao chép vào bộ nhớ tạm");
-  };
+  const processedRecords = useMemo(() => {
+    return (records || []).map((r) => ({
+      ...r,
+      _source_name: getSourceName(r) !== "-" ? getSourceName(r) : (source?.name || "-"),
+      _post_content: getPostContent(r),
+      _record_url: getRecordUrl(r),
+      _status: r.error ? "error" : "success",
+      _created_at_str: formatTime(r?.raw_data?.timestamp || r.created_at),
+    }));
+  }, [records, source]);
 
-  const columns: IColumn<any>[] = [
-    {
-      title: "ID",
-      dataIndex: "id",
-      key: "id",
-      width: 80,
-    },
-    {
-      title: "Snapshot ID",
-      dataIndex: "snapshot_id",
-      key: "snapshot_id",
-      width: 180,
-      render: (id: string) => (
-        <Space size="small">
-          <Text code copyable={{ text: id }}>
-            {id ? `${id.slice(0, 8)}...` : "-"}
-          </Text>
-        </Space>
-      ),
-    },
-    {
-      title: "Record URL",
-      dataIndex: "record_url",
-      key: "record_url",
-      width: 250,
-      ellipsis: true,
-      render: (url: string) =>
-        url ? (
-          <Link href={url} target="_blank" rel="noopener noreferrer">
-            {url}
-          </Link>
-        ) : (
-          "-"
+  const columns: IColumn<any>[] = useMemo(
+    () => [
+      {
+        title: "Tên nguồn",
+        dataIndex: "_source_name",
+        key: "source_name",
+        filterType: "string",
+        sortable: true,
+        width: 170,
+        ellipsis: true,
+        render: (srcName: string) => (
+          <Tooltip title={srcName !== "-" ? srcName : undefined}>
+            <Text strong>{srcName || "-"}</Text>
+          </Tooltip>
         ),
-    },
-    {
-      title: "Trạng thái cào",
-      key: "status",
-      width: 130,
-      render: (_: any, record: any) => {
-        if (record.error) {
-          return (
-            <Tooltip title={record.error}>
-              <Tag color="red">Lỗi</Tag>
-            </Tooltip>
-          );
-        }
-        return <Tag color="green">Thành công</Tag>;
       },
-    },
-    {
-      title: "Thời gian cào",
-      dataIndex: "created_at",
-      key: "created_at",
-      width: 150,
-      render: (time: any, record: any) => formatTime(record?.raw_data?.timestamp || time),
-    },
-    {
-      title: "Thao tác",
-      key: "action",
-      align: "center" as const,
-      width: 100,
-      fixed: "right" as const,
-      render: (_: any, record: any) => (
-        <Tooltip title="Xem chi tiết dữ liệu cào">
-          <Button
-            type="link"
-            icon={<EyeOutlined />}
-            onClick={() => handleViewDetail(record)}
-          />
-        </Tooltip>
-      ),
-    },
-  ];
+      {
+        title: "Nội dung",
+        dataIndex: "_post_content",
+        key: "post_content",
+        filterType: "string",
+        sortable: true,
+        width: 260,
+        ellipsis: true,
+        render: (content: string) => (
+          <Tooltip title={content !== "-" ? content : undefined}>
+            <Text>{content || "-"}</Text>
+          </Tooltip>
+        ),
+      },
+      {
+        title: "Record URL",
+        dataIndex: "_record_url",
+        key: "record_url",
+        filterType: "string",
+        sortable: true,
+        width: 250,
+        ellipsis: true,
+        render: (url: string) =>
+          url && url !== "-" ? (
+            <Link href={url} target="_blank" rel="noopener noreferrer">
+              {url}
+            </Link>
+          ) : (
+            "-"
+          ),
+      },
+      {
+        title: "Trạng thái cào",
+        dataIndex: "_status",
+        key: "status",
+        filterType: "select",
+        filterData: [
+          { label: "Thành công", value: "success" },
+          { label: "Lỗi", value: "error" },
+        ],
+        sortable: true,
+        width: 130,
+        render: (status: string, record: any) => {
+          if (status === "error" || record.error) {
+            return (
+              <Tooltip title={record.error}>
+                <Tag color="red">Lỗi</Tag>
+              </Tooltip>
+            );
+          }
+          return <Tag color="green">Thành công</Tag>;
+        },
+      },
+      {
+        title: "Thời gian cào",
+        dataIndex: "_created_at_str",
+        key: "created_at",
+        filterType: "string",
+        sortable: true,
+        width: 150,
+      },
+      {
+        title: "Thao tác",
+        key: "action",
+        align: "center" as const,
+        width: 100,
+        fixed: "right" as const,
+        render: (_: any, record: any) => (
+          <Tooltip title="Xem chi tiết dữ liệu cào">
+            <Button
+              type="link"
+              icon={<EyeOutlined />}
+              onClick={() => handleViewDetail(record)}
+            />
+          </Tooltip>
+        ),
+      },
+    ],
+    []
+  );
 
   return (
-    <>
-      <Modal
-        title={
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: 18, fontWeight: "bold" }}>
-              Kết quả crawl gần nhất: {source?.name}
-            </span>
-            {source?.platform && (
-              <Tag
-                color={
-                  source.platform === "facebook"
-                    ? "blue"
-                    : source.platform === "tiktok"
-                      ? "magenta"
-                      : source.platform === "instagram"
-                        ? "orange"
-                        : "cyan"
-                }
-                style={{ textTransform: "capitalize", fontWeight: "bold" }}
-              >
-                {source.platform}
-              </Tag>
-            )}
-          </div>
-        }
-        open={open}
-        onCancel={onCancel}
-        footer={[
-          <Button key="close" onClick={onCancel}>
-            Đóng
-          </Button>,
-        ]}
-        width={950}
-        destroyOnClose
-      >
-        <Card style={{ borderRadius: 8, boxShadow: "0 2px 8px rgba(0,0,0,0.05)", margin: "8px 0" }} >
-          <TableStaticData
-            data={records}
-            columns={columns}
-            loading={loading}
-            onReload={() => fetchRecords(page, pageSize)}
-            hasTotal={true}
-            otherProps={{
-              rowKey: "id",
-              scroll: { x: 800 },
-              pagination: {
-                current: page,
-                pageSize: pageSize,
-                total: total,
-                showSizeChanger: true,
-                onChange: (p: number, ps: number) => {
-                  setPage(p);
-                  setPageSize(ps);
-                },
+    <Modal
+      title={
+        <div style={{ fontSize: 18, fontWeight: "bold" }}>
+          Lịch sử kết quả cào: {source?.name || `#${source?.id}`}
+        </div>
+      }
+      open={open}
+      onCancel={onCancel}
+      footer={[
+        <Button key="close" onClick={onCancel}>
+          Đóng
+        </Button>,
+      ]}
+      width={1000}
+      destroyOnClose
+    >
+      <div style={{ minHeight: 400, padding: "10px 0" }}>
+        <TableStaticData
+          data={processedRecords}
+          columns={columns}
+          loading={loading}
+          onReload={() => fetchRecords(page, pageSize)}
+          hasTotal={true}
+          addStt={true}
+          otherProps={{
+            rowKey: "id",
+            scroll: { x: 900 },
+            pagination: {
+              current: page,
+              pageSize: pageSize,
+              total: total,
+              showSizeChanger: true,
+              onChange: (p: number, ps: number) => {
+                setPage(p);
+                setPageSize(ps);
               },
-            }}
-          />
-        </Card>
-      </Modal>
+            },
+          }}
+        />
+      </div>
 
-      {/* Nested detail modal */}
-      <Modal
-        title={
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "95%" }}>
-            <span style={{ fontSize: 18, fontWeight: "bold" }}>
-              Chi tiết Record <span style={{ textTransform: "capitalize" }}>{source?.platform}</span>: #{detailRecord?.id}
-            </span>
-            {detailRecord?.scraper_type && (
-              <Tag color="purple" style={{ textTransform: "uppercase" }}>
-                {detailRecord?.scraper_type}
-              </Tag>
-            )}
-          </div>
-        }
+      <CrawlHistoryDetailModal
         open={detailOpen}
+        record={detailRecord}
+        loading={false}
         onCancel={() => {
           setDetailOpen(false);
           setDetailRecord(null);
         }}
-        footer={[
-          <Button
-            key="close"
-            onClick={() => {
-              setDetailOpen(false);
-              setDetailRecord(null);
-            }}
-          >
-            Đóng
-          </Button>,
-        ]}
-        width={850}
-        destroyOnClose
-      >
-        <div style={{ minHeight: 250, padding: "10px 0" }}>
-          {detailRecord ? (
-            <Space direction="vertical" size="large" style={{ width: "100%" }}>
-              <Descriptions bordered column={2} size="small">
-                <Descriptions.Item label="ID">{detailRecord.id}</Descriptions.Item>
-                <Descriptions.Item label="Thời gian cào">{formatTime(detailRecord.raw_data?.timestamp || detailRecord.created_at)}</Descriptions.Item>
-                <Descriptions.Item label="Loại Scraper">{detailRecord.scraper_type}</Descriptions.Item>
-                <Descriptions.Item label="Dataset ID">{detailRecord.dataset_id || "-"}</Descriptions.Item>
-                <Descriptions.Item label="Snapshot ID" span={2}>
-                  <Text code copyable>{detailRecord.snapshot_id}</Text>
-                </Descriptions.Item>
-                <Descriptions.Item label="Record ID">{detailRecord.record_id || "-"}</Descriptions.Item>
-                <Descriptions.Item label="Record URL" span={2}>
-                  <Link href={detailRecord.record_url} target="_blank" rel="noopener noreferrer">
-                    {detailRecord.record_url}
-                  </Link>
-                </Descriptions.Item>
-                {detailRecord.error && (
-                  <Descriptions.Item label="Lỗi cào" span={2}>
-                    <Text type="danger">{detailRecord.error}</Text>
-                  </Descriptions.Item>
-                )}
-                {detailRecord.script && (
-                  <Descriptions.Item label="Transcript (STT)" span={2}>
-                    <div style={{ maxHeight: 150, overflowY: "auto", whiteSpace: "pre-wrap" }}>
-                      {detailRecord.script}
-                    </div>
-                  </Descriptions.Item>
-                )}
-              </Descriptions>
-
-              <Card
-                title="Dữ liệu JSON thô (Raw Data)"
-                size="small"
-                type="inner"
-                style={{ borderRadius: 8 }}
-                extra={
-                  <Button
-                    type="link"
-                    icon={<CopyOutlined />}
-                    onClick={() => copyToClipboard(JSON.stringify(detailRecord.raw_data, null, 2))}
-                  >
-                    Sao chép JSON
-                  </Button>
-                }
-              >
-                <div style={{ maxHeight: 350, overflowY: "auto", backgroundColor: "#f5f5f5", padding: 10, borderRadius: 6 }}>
-                  <pre style={{ margin: 0, fontSize: 12 }}>
-                    {JSON.stringify(detailRecord.raw_data, null, 2)}
-                  </pre>
-                </div>
-              </Card>
-            </Space>
-          ) : (
-            <div style={{ textAlign: "center", color: "#bfbfbf", padding: "40px 0" }}>
-              Không tải được thông tin bản ghi
-            </div>
-          )}
-        </div>
-      </Modal>
-    </>
+        activePlatform={source?.platform || "facebook"}
+        colorPrimary="#1890ff"
+      />
+    </Modal>
   );
 };
+
 export default CrawlRecordsModal;
